@@ -13,6 +13,7 @@ graph TD
 ```
 
 ### Data Flow
+
 1.  **Record**: UI sends `start_recording` -> Rust spawns audio thread -> `cpal` captures stream -> Data buffered in memory (`Arc<Mutex<Vec<f32>>>`).
 2.  **Stop**: UI sends `stop_recording` -> Rust stops stream -> Buffer flushed to disk via `hound` (`recording_test.wav`).
 3.  **Play**: UI sends `play_recording` -> Rust reads WAV file -> `rodio` plays audio.
@@ -20,26 +21,30 @@ graph TD
 ## Technical Decisions
 
 ### Libraries
-*   **`cpal`**: Chosen for low-level cross-platform audio input access. It's the standard in the Rust ecosystem.
-*   **`hound`**: Simple, pure-Rust WAV encoder/decoder. Sufficient for Phase 1 requirements.
-*   **`rodio`**: High-level audio playback library that simplifies output device management.
+
+- **`cpal`**: Chosen for low-level cross-platform audio input access. It's the standard in the Rust ecosystem.
+- **`hound`**: Simple, pure-Rust WAV encoder/decoder. Sufficient for Phase 1 requirements.
+- **`rodio`**: High-level audio playback library that simplifies output device management.
 
 ### Audio Format
-*   **Input**: Native device sample rate (usually 44.1kHz or 48kHz).
-*   **Storage**: 32-bit float or 16-bit integer WAV.
-    *   *Rationale*: High fidelity for debugging. Downsampling to 16kHz (for Whisper) is deferred to Phase 2.
-*   **Channels**: Mix down to Mono on save.
-    *   *Rationale*: Whisper requires mono audio.
+
+- **Input**: Native device sample rate (usually 44.1kHz or 48kHz).
+- **Storage**: 32-bit float or 16-bit integer WAV.
+  - _Rationale_: High fidelity for debugging. Downsampling to 16kHz (for Whisper) is deferred to Phase 2.
+- **Channels**: Mix down to Mono on save.
+  - _Rationale_: Whisper requires mono audio.
 
 ### OS Specifics
 
 #### macOS
-*   **Permissions**: Must add `NSMicrophoneUsageDescription` to `src-tauri/Info.plist`.
-*   **Threading**: CoreAudio can be sensitive to main thread blocking. Audio work *must* be offloaded.
+
+- **Permissions**: Must add `NSMicrophoneUsageDescription` to `src-tauri/Info.plist`.
+- **Threading**: CoreAudio can be sensitive to main thread blocking. Audio work _must_ be offloaded.
 
 #### Windows
-*   **Host**: Default to WASAPI (via `cpal` default host).
-*   **Pathing**: Use standard Windows Temp folder.
+
+- **Host**: Default to WASAPI (via `cpal` default host).
+- **Pathing**: Use standard Windows Temp folder.
 
 ## API Interface (Tauri Commands)
 
