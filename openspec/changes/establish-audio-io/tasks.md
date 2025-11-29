@@ -1,0 +1,34 @@
+# Tasks: Establish Audio I/O Infrastructure
+
+- [x] **Project Setup** <!-- id: 0 -->
+    - [x] Add `cpal`, `hound`, `rodio` to `src-tauri/Cargo.toml`
+    - [x] Add `NSMicrophoneUsageDescription` to `src-tauri/Info.plist` (macOS)
+    - [x] (Note) Verify `src-tauri/entitlements.plist` has `com.apple.security.device.microphone` for release builds
+- [x] **UI Implementation** <!-- id: 1 -->
+    - [x] Create `AudioRecorder` component with Record/Stop/Play buttons
+    - [x] Implement state management (Ready, Recording, Playing)
+    - [x] Add basic volume visualizer (listen to `audio-level-update` event)
+- [x] **Backend: Recording** <!-- id: 2 -->
+    - [x] Implement `start_recording` Tauri command
+    - [x] Set up `cpal` input stream and buffer
+    - [x] Handle audio thread spawning
+    - [x] Implement audio level calculation and emit `audio-level-update` event
+- [x] **Backend: Storage** <!-- id: 3 -->
+    - [x] Implement `stop_recording` Tauri command
+    - [x] Implement WAV file writing logic using `hound`
+    - [x] Ensure mono mixdown
+- [x] **Backend: Playback** <!-- id: 4 -->
+    - [x] Implement `play_recording` Tauri command
+    - [x] Set up `rodio` output stream and file source
+- [x] **Debugging & Cleanup** <!-- id: 6 -->
+    - [x] Modify `start_recording` to return device name
+    - [x] Update `AudioRecorder` to display device name
+    - [x] Remove default Tauri template UI from `App.tsx` and `App.css`
+- [x] **Device Selection** <!-- id: 7 -->
+    - [x] Implement `get_input_devices` in `audio.rs`
+    - [x] Update `start_recording` to accept `device_name`
+    - [x] Add device dropdown to `AudioRecorder.tsx`
+- [x] **Verification** <!-- id: 5 -->
+    - [ ] Verify recording on macOS
+    - [x] Verify recording on Windows
+    - [x] Check `recording_test.wav` format and quality
