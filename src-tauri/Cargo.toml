@@ -11,12 +11,23 @@ edition = "2021"
 tauri-build = { version = "1", features = [] }
 
 [dependencies]
-tauri = { version = "1", features = ["shell-open"] }
+tauri = { version = "1", features = ["shell-open", "dialog"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 cpal = "0.15.3"
 hound = "3.5.1"
 rodio = "0.17.3"
+rubato = "0.14"
+anyhow = "1.0"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+whisper-rs = { version = "0.13", features = ["metal"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+whisper-rs = { version = "0.13", features = ["cuda"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+whisper-rs = { version = "0.13" }
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

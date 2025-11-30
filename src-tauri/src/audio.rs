@@ -9,6 +9,7 @@ pub struct AudioState {
     pub recording_buffer: Arc<Mutex<Vec<f32>>>,
     pub stop_tx: Mutex<Option<mpsc::Sender<()>>>,
     pub format: Mutex<Option<(u32, u16)>>, // sample_rate, channels
+    pub model_path: Mutex<Option<String>>,
 }
 
 impl AudioState {
@@ -18,6 +19,7 @@ impl AudioState {
             recording_buffer: Arc::new(Mutex::new(Vec::new())),
             stop_tx: Mutex::new(None),
             format: Mutex::new(None),
+            model_path: Mutex::new(None),
         }
     }
 }
