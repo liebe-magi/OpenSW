@@ -1,0 +1,10 @@
+[env]
+# CUDA 13.0 dropped support for compute capability 5.2.
+# "native" targets the GPU on the current machine.
+# If distribution is required, change this to a list of supported architectures (e.g. "61;70;75;80;86;89;90").
+CMAKE_CUDA_ARCHITECTURES = "75;86;89;120"
+# Suppress error "CUB requires at least C++17" from CUDA 13.0
+# Add /utf-8 to fix encoding issues with MSVC (C3688)
+CMAKE_CUDA_FLAGS = "-DCCCL_IGNORE_DEPRECATED_CPP_DIALECT -std=c++17 -Xcompiler /utf-8"
+CMAKE_CXX_FLAGS = "/utf-8"
+CMAKE_C_FLAGS = "/utf-8"
