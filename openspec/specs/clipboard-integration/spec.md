@@ -1,10 +1,14 @@
-# Spec: Clipboard Integration
+# clipboard-integration Specification
 
-## ADDED Requirements
+## Purpose
+
+TBD - created by archiving change integrate-ollama-clipboard. Update Purpose after archive.
+
+## Requirements
 
 ### Requirement: Copy to Clipboard
 
-The system must allow the user to copy text to the system clipboard.
+The system MUST allow the user to copy text to the system clipboard.
 
 #### Scenario: Copy refined text
 

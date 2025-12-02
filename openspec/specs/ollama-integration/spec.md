@@ -1,8 +1,14 @@
-## ADDED Requirements
+# ollama-integration Specification
+
+## Purpose
+
+TBD - created by archiving change integrate-ollama-clipboard. Update Purpose after archive.
+
+## Requirements
 
 ### Requirement: Fetch Available Models
 
-The system must be able to retrieve a list of available LLM models from the local Ollama instance.
+The system MUST be able to retrieve a list of available LLM models from the local Ollama instance.
 
 #### Scenario: Successfully fetch models
 
@@ -13,5 +19,3 @@ The system must be able to retrieve a list of available LLM models from the loca
 
 - **WHEN** the application requests available models
 - **THEN** it should return a connection error indicating Ollama is unavailable
-
-

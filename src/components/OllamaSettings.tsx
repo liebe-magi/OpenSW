@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/tauri';
 
 interface OllamaSettingsProps {
@@ -18,11 +18,7 @@ export default function OllamaSettings({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchModels();
-  }, []);
-
-  const fetchModels = async () => {
+  const fetchModels = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -36,14 +32,18 @@ export default function OllamaSettings({
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedModel, onModelChange]);
+
+  useEffect(() => {
+    fetchModels();
+  }, [fetchModels]);
 
   return (
     <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
       <h3>Ollama Settings</h3>
-      
+
       {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
-      
+
       <div style={{ marginBottom: '10px' }}>
         <label style={{ marginRight: '10px' }}>Model:</label>
         <select
@@ -59,8 +59,8 @@ export default function OllamaSettings({
             </option>
           ))}
         </select>
-        <button 
-          onClick={fetchModels} 
+        <button
+          onClick={fetchModels}
           disabled={loading}
           style={{ marginLeft: '10px', padding: '5px 10px' }}
         >

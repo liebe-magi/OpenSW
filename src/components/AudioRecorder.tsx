@@ -21,7 +21,7 @@ export default function AudioRecorder() {
   const [language, setLanguage] = useState('ja');
   const [ollamaModel, setOllamaModel] = useState('');
   const [ollamaPrompt, setOllamaPrompt] = useState(
-    "以下の文章の『えー』『あの』などのフィラーを取り除き、句読点を適切に補って、自然な日本語の文章に修正してください。出力は修正後の文章のみにしてください。\n\n対象の文章: {text}"
+    '以下の文章の『えー』『あの』などのフィラーを取り除き、句読点を適切に補って、自然な日本語の文章に修正してください。出力は修正後の文章のみにしてください。\n\n対象の文章: {text}'
   );
   const [refinedText, setRefinedText] = useState('');
   const [isRefining, setIsRefining] = useState(false);
@@ -248,7 +248,9 @@ export default function AudioRecorder() {
               style={{ width: '100%', height: '200px', padding: '10px', resize: 'vertical' }}
             />
             <div style={{ marginTop: '5px' }}>
-              <button onClick={() => copyToClipboard(transcription)} disabled={!transcription}>Copy Raw</button>
+              <button onClick={() => copyToClipboard(transcription)} disabled={!transcription}>
+                Copy Raw
+              </button>
             </div>
           </div>
 
@@ -261,13 +263,12 @@ export default function AudioRecorder() {
               style={{ width: '100%', height: '200px', padding: '10px', resize: 'vertical' }}
             />
             <div style={{ marginTop: '5px', display: 'flex', gap: '10px' }}>
-              <button
-                onClick={refineText}
-                disabled={!transcription || !ollamaModel || isRefining}
-              >
+              <button onClick={refineText} disabled={!transcription || !ollamaModel || isRefining}>
                 {isRefining ? 'Refining...' : 'Refine with Ollama'}
               </button>
-              <button onClick={() => copyToClipboard(refinedText)} disabled={!refinedText}>Copy Refined</button>
+              <button onClick={() => copyToClipboard(refinedText)} disabled={!refinedText}>
+                Copy Refined
+              </button>
             </div>
           </div>
         </div>
