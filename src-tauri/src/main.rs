@@ -9,6 +9,8 @@ fn greet(name: &str) -> String {
 
 mod audio;
 mod audio_utils;
+mod clipboard;
+mod ollama;
 
 use audio::AudioState;
 use tauri::api::dialog::blocking::FileDialogBuilder;
@@ -72,6 +74,32 @@ async fn transcribe_audio(
     Ok(text)
 }
 
+#[tauri::command]
+async fn get_ollama_models() -> Result<Vec<String>, String> {
+    tauri::async_runtime::spawn_blocking(|| ollama::get_models().map_err(|e| e.to_string()))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn refine_text_with_ollama(
+    text: String,
+    model: String,
+    prompt: String,
+) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let final_prompt = prompt.replace("{text}", &text);
+        ollama::generate(&model, &final_prompt).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+fn copy_to_clipboard(text: String) -> Result<(), String> {
+    clipboard::copy_text(&text).map_err(|e| e.to_string())
+}
+
 fn main() {
     tauri::Builder::default()
         .manage(AudioState::new())
@@ -82,7 +110,10 @@ fn main() {
             audio::play_recording,
             audio::get_input_devices,
             select_model,
-            transcribe_audio
+            transcribe_audio,
+            get_ollama_models,
+            refine_text_with_ollama,
+            copy_to_clipboard
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

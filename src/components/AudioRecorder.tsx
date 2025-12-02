@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/tauri';
 import { listen } from '@tauri-apps/api/event';
+import OllamaSettings from './OllamaSettings';
 
 interface AudioLevelEvent {
   amplitude: number;
@@ -18,6 +19,12 @@ export default function AudioRecorder() {
   const [transcription, setTranscription] = useState('');
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [language, setLanguage] = useState('ja');
+  const [ollamaModel, setOllamaModel] = useState('');
+  const [ollamaPrompt, setOllamaPrompt] = useState(
+    "以下の文章の『えー』『あの』などのフィラーを取り除き、句読点を適切に補って、自然な日本語の文章に修正してください。出力は修正後の文章のみにしてください。\n\n対象の文章: {text}"
+  );
+  const [refinedText, setRefinedText] = useState('');
+  const [isRefining, setIsRefining] = useState(false);
 
   useEffect(() => {
     const unlisten = listen<AudioLevelEvent>('audio-level-update', (event) => {
@@ -98,6 +105,36 @@ export default function AudioRecorder() {
     }
   };
 
+  const refineText = async () => {
+    if (!transcription || !ollamaModel) return;
+    try {
+      setIsRefining(true);
+      setStatus('Refining text...');
+      const refined = await invoke<string>('refine_text_with_ollama', {
+        text: transcription,
+        model: ollamaModel,
+        prompt: ollamaPrompt,
+      });
+      setRefinedText(refined);
+      setStatus('Refinement complete');
+    } catch (error) {
+      console.error('Failed to refine text:', error);
+      setStatus(`Error: ${error}`);
+    } finally {
+      setIsRefining(false);
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await invoke('copy_to_clipboard', { text });
+      setStatus('Copied to clipboard');
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
+      setStatus(`Error: ${error}`);
+    }
+  };
+
   return (
     <div
       style={{ padding: '20px', border: '1px solid #ccc', borderRadius: '8px', marginTop: '20px' }}
@@ -161,15 +198,23 @@ export default function AudioRecorder() {
         />
       </div>
 
+      <OllamaSettings
+        selectedModel={ollamaModel}
+        onModelChange={setOllamaModel}
+        prompt={ollamaPrompt}
+        onPromptChange={setOllamaPrompt}
+      />
+
       <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
-        <h3>Transcription</h3>
+        <h3>Transcription & Refinement</h3>
+
         <div style={{ marginBottom: '10px' }}>
           <button onClick={selectModel} disabled={isRecording || isTranscribing}>
             Select Whisper Model
           </button>
-          <div style={{ fontSize: '0.8em', color: '#666', marginTop: '5px' }}>
+          <span style={{ fontSize: '0.8em', color: '#666', marginLeft: '10px' }}>
             {modelPath ? `Model: ${modelPath}` : 'No model selected'}
-          </div>
+          </span>
         </div>
 
         <div style={{ marginBottom: '10px' }}>
@@ -183,23 +228,49 @@ export default function AudioRecorder() {
             <option value="ja">Japanese</option>
             <option value="en">English</option>
           </select>
-        </div>
 
-        <div style={{ marginBottom: '10px' }}>
           <button
             onClick={transcribeAudio}
             disabled={!modelPath || isRecording || isPlaying || isTranscribing}
+            style={{ marginLeft: '10px' }}
           >
             {isTranscribing ? 'Transcribing...' : 'Transcribe Recording'}
           </button>
         </div>
 
-        <textarea
-          value={transcription}
-          onChange={(e) => setTranscription(e.target.value)}
-          placeholder="Transcription will appear here..."
-          style={{ width: '100%', height: '100px', padding: '10px' }}
-        />
+        <div style={{ display: 'flex', gap: '20px', marginTop: '20px' }}>
+          <div style={{ flex: 1 }}>
+            <h4>Raw Transcription</h4>
+            <textarea
+              value={transcription}
+              onChange={(e) => setTranscription(e.target.value)}
+              placeholder="Transcription will appear here..."
+              style={{ width: '100%', height: '200px', padding: '10px', resize: 'vertical' }}
+            />
+            <div style={{ marginTop: '5px' }}>
+              <button onClick={() => copyToClipboard(transcription)} disabled={!transcription}>Copy Raw</button>
+            </div>
+          </div>
+
+          <div style={{ flex: 1 }}>
+            <h4>Refined Text</h4>
+            <textarea
+              value={refinedText}
+              onChange={(e) => setRefinedText(e.target.value)}
+              placeholder="Refined text will appear here..."
+              style={{ width: '100%', height: '200px', padding: '10px', resize: 'vertical' }}
+            />
+            <div style={{ marginTop: '5px', display: 'flex', gap: '10px' }}>
+              <button
+                onClick={refineText}
+                disabled={!transcription || !ollamaModel || isRefining}
+              >
+                {isRefining ? 'Refining...' : 'Refine with Ollama'}
+              </button>
+              <button onClick={() => copyToClipboard(refinedText)} disabled={!refinedText}>Copy Refined</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
