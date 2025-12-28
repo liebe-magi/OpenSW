@@ -13,5 +13,3 @@ The system must be able to retrieve a list of available LLM models from the loca
 
 - **WHEN** the application requests available models
 - **THEN** it should return a connection error indicating Ollama is unavailable
-
-

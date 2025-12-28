@@ -26,7 +26,7 @@ export default function OllamaSettings({
     if (baseUrl) {
       fetchModels();
     }
-  }, []);
+  }, [baseUrl]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchModels = async () => {
     if (!baseUrl) return;
@@ -39,6 +39,7 @@ export default function OllamaSettings({
         onModelChange(fetchedModels[0]);
       }
     } catch (err) {
+      console.error('Failed to fetch Ollama models:', err);
       setError('Ollama not available');
       setModels([]);
     } finally {
@@ -74,12 +75,19 @@ export default function OllamaSettings({
             >
               <option value="">None (Skip)</option>
               {models.map((model) => (
-                <option key={model} value={model}>{model}</option>
+                <option key={model} value={model}>
+                  {model}
+                </option>
               ))}
             </select>
             <span className="select-arrow">▼</span>
           </div>
-          <button onClick={fetchModels} disabled={loading || !baseUrl} className="icon-btn" title="Refresh models">
+          <button
+            onClick={fetchModels}
+            disabled={loading || !baseUrl}
+            className="icon-btn"
+            title="Refresh models"
+          >
             ↻
           </button>
         </div>

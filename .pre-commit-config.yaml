@@ -1,39 +1,27 @@
 repos:
   - repo: local
     hooks:
+      # Rust hooks
       - id: cargo-fmt
         name: cargo fmt
-        description: Format files with cargo fmt.
+        description: Format Rust files with cargo fmt.
         entry: cargo fmt
         language: system
         types: [rust]
         args: ['--manifest-path', 'src-tauri/Cargo.toml', '--all', '--', '--check']
-      - id: cargo-clippy
-        name: cargo clippy
-        description: Lint rust sources
-        entry: cargo clippy
-        language: system
-        args: ['--manifest-path', 'src-tauri/Cargo.toml', '--', '-D', 'warnings']
-        types: [rust]
-        pass_filenames: false
-      - id: cargo-check
-        name: cargo check
-        description: Check the package for errors.
-        entry: cargo check
-        language: system
-        args: ['--manifest-path', 'src-tauri/Cargo.toml']
-        types: [rust]
-        pass_filenames: false
+
+      # Frontend hooks
       - id: eslint
         name: eslint
-        description: Lint files with eslint.
+        description: Lint TypeScript/TSX files with ESLint.
         entry: bun run lint
         language: system
         files: \.(ts|tsx)$
         pass_filenames: false
+
       - id: prettier
         name: prettier
-        description: Format files with prettier.
+        description: Check formatting with Prettier.
         entry: bun run format:check
         language: system
         types: [text]

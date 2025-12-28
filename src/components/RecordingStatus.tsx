@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React from 'react';
 
 type PipelineStage = 'recording' | 'transcribing' | 'refining' | 'copying' | 'done';
 
@@ -16,19 +16,16 @@ const stageConfig: Record<PipelineStage, { color: string; text: string; bgGlow: 
 };
 
 export default function RecordingStatus({ stage, onStop }: CompactStatusProps) {
-  const [pulse, setPulse] = useState(true);
+  const pulse = stage !== 'done';
   const config = stageConfig[stage];
 
-  useEffect(() => {
-    if (stage === 'done') {
-      setPulse(false);
-      return;
-    }
-    setPulse(true);
-  }, [stage]);
-
   return (
-    <div className="compact-status" style={{ background: `linear-gradient(135deg, ${config.bgGlow} 0%, rgba(15, 15, 18, 0.98) 100%)` }}>
+    <div
+      className="compact-status"
+      style={{
+        background: `linear-gradient(135deg, ${config.bgGlow} 0%, rgba(15, 15, 18, 0.98) 100%)`,
+      }}
+    >
       <div className="status-content">
         <div className="indicator-container">
           <div
@@ -36,7 +33,9 @@ export default function RecordingStatus({ stage, onStop }: CompactStatusProps) {
             style={{ backgroundColor: config.color, boxShadow: `0 0 12px ${config.color}` }}
           />
         </div>
-        <span className="status-text" style={{ color: config.color }}>{config.text}</span>
+        <span className="status-text" style={{ color: config.color }}>
+          {config.text}
+        </span>
       </div>
       <button
         onClick={onStop}

@@ -16,10 +16,10 @@
       "icons/icon.ico"
     ]
   },
-  "productName": "open-sw",
-  "mainBinaryName": "open-sw",
-  "version": "0.0.0",
-  "identifier": "dev.liebe-magi.open-sw",
+  "productName": "OpenSW",
+  "mainBinaryName": "OpenSW",
+  "version": "0.1.0",
+  "identifier": "dev.liebe-magi.opensw",
   "plugins": {},
   "app": {
     "security": {
@@ -28,7 +28,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "open-sw",
+        "title": "OpenSW",
         "width": 500,
         "height": 720,
         "useHttpsScheme": true

@@ -13,23 +13,26 @@ type PipelineStage = 'idle' | 'recording' | 'transcribing' | 'refining' | 'copyi
 
 export default function AudioRecorder() {
   const [pipelineStage, setPipelineStage] = useState<PipelineStage>('idle');
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [audioLevel, setAudioLevel] = useState(0);
+  const [, setAudioLevel] = useState(0);
   const [status, setStatus] = useState('Ready');
-  const [deviceName, setDeviceName] = useState<string>('');
+  const [, setDeviceName] = useState<string>('');
   const [devices, setDevices] = useState<string[]>([]);
-  const [selectedDevice, setSelectedDevice] = useState<string>(() => localStorage.getItem('selectedDevice') || '');
+  const [selectedDevice, setSelectedDevice] = useState<string>(
+    () => localStorage.getItem('selectedDevice') || ''
+  );
   const [modelPath, setModelPath] = useState(() => localStorage.getItem('modelPath') || '');
-  const [transcription, setTranscription] = useState('');
-  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [, setTranscription] = useState('');
   const [language, setLanguage] = useState('ja');
   const [ollamaModel, setOllamaModel] = useState(() => localStorage.getItem('ollamaModel') || '');
-  const [ollamaPrompt, setOllamaPrompt] = useState(() => localStorage.getItem('ollamaPrompt') ||
-    "以下の文章の『えー』『あの』などのフィラーを取り除き、句読点を適切に補って、自然な日本語の文章に修正してください。出力は修正後の文章のみにしてください。\n\n対象の文章: {text}"
+  const [ollamaPrompt, setOllamaPrompt] = useState(
+    () =>
+      localStorage.getItem('ollamaPrompt') ||
+      '以下の文章の『えー』『あの』などのフィラーを取り除き、句読点を適切に補って、自然な日本語の文章に修正してください。出力は修正後の文章のみにしてください。\n\n対象の文章: {text}'
   );
-  const [ollamaUrl, setOllamaUrl] = useState(() => localStorage.getItem('ollamaUrl') || 'http://localhost:11434');
-  const [refinedText, setRefinedText] = useState('');
-  const [isRefining, setIsRefining] = useState(false);
+  const [ollamaUrl, setOllamaUrl] = useState(
+    () => localStorage.getItem('ollamaUrl') || 'http://localhost:11434'
+  );
+  const [, setRefinedText] = useState('');
   const [loadingDevices, setLoadingDevices] = useState(false);
 
   const pipelineStageRef = useRef(pipelineStage);
@@ -38,8 +41,12 @@ export default function AudioRecorder() {
   const ollamaPromptRef = useRef(ollamaPrompt);
   const ollamaUrlRef = useRef(ollamaUrl);
 
-  useEffect(() => { pipelineStageRef.current = pipelineStage; }, [pipelineStage]);
-  useEffect(() => { selectedDeviceRef.current = selectedDevice; }, [selectedDevice]);
+  useEffect(() => {
+    pipelineStageRef.current = pipelineStage;
+  }, [pipelineStage]);
+  useEffect(() => {
+    selectedDeviceRef.current = selectedDevice;
+  }, [selectedDevice]);
   useEffect(() => {
     ollamaModelRef.current = ollamaModel;
     ollamaPromptRef.current = ollamaPrompt;
@@ -48,15 +55,22 @@ export default function AudioRecorder() {
     localStorage.setItem('ollamaPrompt', ollamaPrompt);
     localStorage.setItem('ollamaUrl', ollamaUrl);
   }, [ollamaModel, ollamaPrompt, ollamaUrl]);
-  useEffect(() => { localStorage.setItem('selectedDevice', selectedDevice); }, [selectedDevice]);
-  useEffect(() => { localStorage.setItem('modelPath', modelPath); }, [modelPath]);
+  useEffect(() => {
+    localStorage.setItem('selectedDevice', selectedDevice);
+  }, [selectedDevice]);
+  useEffect(() => {
+    localStorage.setItem('modelPath', modelPath);
+  }, [modelPath]);
 
   useEffect(() => {
     const savedPath = localStorage.getItem('modelPath');
     if (savedPath) {
       invoke<string>('load_model', { path: savedPath })
         .then(() => setStatus('Model loaded'))
-        .catch(() => { setStatus('Model file not found'); setModelPath(''); });
+        .catch(() => {
+          setStatus('Model file not found');
+          setModelPath('');
+        });
     }
   }, []);
 
@@ -119,7 +133,7 @@ export default function AudioRecorder() {
           baseUrl: ollamaUrlRef.current,
           text: text,
           model: ollamaModelRef.current,
-          prompt: ollamaPromptRef.current
+          prompt: ollamaPromptRef.current,
         });
         setRefinedText(finalText);
       }
@@ -132,7 +146,6 @@ export default function AudioRecorder() {
       setStatus('Copied to clipboard!');
 
       sendNotification({ title: 'OpenSW', body: 'Transcription copied to clipboard' });
-
     } catch (error) {
       console.error('Pipeline failed:', error);
       setStatus(`Error: ${error}`);
@@ -188,7 +201,7 @@ export default function AudioRecorder() {
 
   const getModelFileName = (path: string) => {
     if (!path) return null;
-    const parts = path.split(/[\/\\]/);
+    const parts = path.split(new RegExp('[\\\\/]'));
     return parts[parts.length - 1];
   };
 
@@ -205,18 +218,22 @@ export default function AudioRecorder() {
           <label>Device</label>
           <div className="input-group">
             <div className="select-wrapper">
-              <select
-                value={selectedDevice}
-                onChange={(e) => setSelectedDevice(e.target.value)}
-              >
+              <select value={selectedDevice} onChange={(e) => setSelectedDevice(e.target.value)}>
                 <option value="">System Default</option>
                 {devices.map((device) => (
-                  <option key={device} value={device}>{device}</option>
+                  <option key={device} value={device}>
+                    {device}
+                  </option>
                 ))}
               </select>
               <span className="select-arrow">▼</span>
             </div>
-            <button onClick={fetchDevices} disabled={loadingDevices} className="icon-btn" title="Refresh devices">
+            <button
+              onClick={fetchDevices}
+              disabled={loadingDevices}
+              className="icon-btn"
+              title="Refresh devices"
+            >
               ↻
             </button>
           </div>
@@ -231,19 +248,14 @@ export default function AudioRecorder() {
             <button onClick={selectModel} className="select-btn">
               {modelPath ? 'Change' : 'Select'}
             </button>
-            <span className="file-name">
-              {getModelFileName(modelPath) || 'No model selected'}
-            </span>
+            <span className="file-name">{getModelFileName(modelPath) || 'No model selected'}</span>
           </div>
         </div>
         <div className="setting-row">
           <label>Language</label>
           <div className="input-group">
             <div className="select-wrapper">
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-              >
+              <select value={language} onChange={(e) => setLanguage(e.target.value)}>
                 <option value="ja">Japanese</option>
                 <option value="en">English</option>
               </select>
@@ -267,7 +279,9 @@ export default function AudioRecorder() {
 
       <footer className="settings-footer">
         <div className="status-bar">
-          <span className={`status-dot ${status === 'Ready' || status === 'Model loaded' ? 'ready' : ''}`}></span>
+          <span
+            className={`status-dot ${status === 'Ready' || status === 'Model loaded' ? 'ready' : ''}`}
+          ></span>
           <span>{status}</span>
         </div>
       </footer>

@@ -2984,28 +2984,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "open-sw"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "arboard",
- "cpal",
- "hound",
- "reqwest 0.11.27",
- "rodio",
- "rubato",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-dialog",
- "tauri-plugin-global-shortcut",
- "tauri-plugin-notification",
- "tauri-plugin-shell",
- "whisper-rs",
-]
-
-[[package]]
 name = "openssl"
 version = "0.10.75"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3047,6 +3025,28 @@ dependencies = [
  "libc",
  "pkg-config",
  "vcpkg",
+]
+
+[[package]]
+name = "opensw"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "arboard",
+ "cpal",
+ "hound",
+ "reqwest 0.11.27",
+ "rodio",
+ "rubato",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "tauri-plugin-global-shortcut",
+ "tauri-plugin-notification",
+ "tauri-plugin-shell",
+ "whisper-rs",
 ]
 
 [[package]]

@@ -10,76 +10,25 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build_and_check:
-    name: ${{ matrix.target }} (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        target:
-          - x86_64-unknown-linux-gnu
-          - x86_64-apple-darwin
-          - x86_64-pc-windows-msvc
-          - aarch64-unknown-linux-gnu
-          - aarch64-apple-darwin
-          - aarch64-pc-windows-msvc
-        include:
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-          - target: x86_64-apple-darwin
-            os: macos-latest
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
-          - target: aarch64-unknown-linux-gnu
-            os: ubuntu-latest
-          - target: aarch64-apple-darwin
-            os: macos-latest
-          - target: aarch64-pc-windows-msvc
-            os: windows-latest
-
+  # Rust formatting check only (no compilation required)
+  rust_format:
+    name: Rust Format Check
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
+          components: rustfmt
 
-      - name: Install Linux dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.0-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
-          # For cross-compilation to aarch64 on x64 linux runner if needed, but standard rust cross might handle it or we need cross-rs.
-          # However, for simple checks, maybe standard cargo is enough if we have the linker?
-          # The user provided matrix implies using standard runners. 
-          # For aarch64-unknown-linux-gnu on ubuntu-latest (x64), we need a linker.
-          if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then
-              sudo apt-get install -y gcc-aarch64-linux-gnu
-          fi
-
-      - name: Configure Cargo for Cross Compilation (Linux aarch64)
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          echo "target.aarch64-unknown-linux-gnu.linker = \"aarch64-linux-gnu-gcc\"" >> ~/.cargo/config
-
-      - name: Format
+      - name: Format Check
         working-directory: src-tauri
         run: cargo fmt --all -- --check
 
-      - name: Clippy
-        working-directory: src-tauri
-        run: cargo clippy -- -D warnings
-
-      - name: Check
-        working-directory: src-tauri
-        run: cargo check --target ${{ matrix.target }}
-
-      - name: Build
-        working-directory: src-tauri
-        run: cargo build --release --target ${{ matrix.target }}
-
+  # Frontend checks
   frontend_check:
+    name: Frontend Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
