@@ -27,7 +27,8 @@
     },
     {
       "description": "Auto-merge minor updates for linting/formatting tools",
-      "matchPackageNames": ["eslint", "prettier", "@typescript-eslint/**"],
+      "matchPackageNames": ["eslint", "prettier"],
+      "matchPackagePatterns": ["^@typescript-eslint/"],
       "matchUpdateTypes": ["minor", "patch"],
       "automerge": true
     },
@@ -43,7 +44,7 @@
     },
     {
       "description": "Group TypeScript and ESLint packages together",
-      "matchPackagePatterns": ["typescript", "eslint", "@typescript-eslint/**"],
+      "matchPackagePatterns": ["typescript", "eslint", "^@typescript-eslint/"],
       "groupName": "TypeScript and ESLint"
     },
     {
