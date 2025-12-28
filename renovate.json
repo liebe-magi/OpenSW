@@ -37,6 +37,34 @@
       "labels": ["dependencies", "cargo", "automerge-safe"]
     },
     {
+      "description": "Auto-merge minor updates for linting/formatting tools",
+      "matchPackageNames": ["eslint", "prettier"],
+      "matchPackagePatterns": ["^@typescript-eslint/"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group Tauri packages together",
+      "matchPackagePatterns": ["^@tauri-apps/", "^tauri-"],
+      "groupName": "Tauri packages"
+    },
+    {
+      "description": "Group React packages together",
+      "matchPackagePatterns": ["^react", "^@types/react"],
+      "groupName": "React packages"
+    },
+    {
+      "description": "Group TypeScript and ESLint packages together",
+      "matchPackagePatterns": ["typescript", "eslint", "^@typescript-eslint/"],
+      "groupName": "TypeScript and ESLint"
+    },
+    {
+      "description": "Group Rust audio crates together",
+      "matchManagers": ["cargo"],
+      "matchPackageNames": ["cpal", "hound", "rodio", "rubato"],
+      "groupName": "Rust audio crates"
+    },
+    {
       "description": "Require review for Cargo minor updates",
       "matchManagers": ["cargo"],
       "matchUpdateTypes": ["minor"],
