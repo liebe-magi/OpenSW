@@ -11,8 +11,10 @@ mod audio;
 mod audio_utils;
 mod clipboard;
 mod ollama;
+mod tray;
 
 use audio::AudioState;
+use tauri::{Emitter, Manager};
 use tauri_plugin_dialog::DialogExt;
 
 #[tauri::command]
@@ -108,11 +110,83 @@ fn copy_to_clipboard(text: String) -> Result<(), String> {
     clipboard::copy_text(&text).map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+async fn request_toggle_recording(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.emit("toggle-recording", ());
+    }
+    Ok(())
+}
+
+#[tauri::command]
+async fn set_window_mode(app: tauri::AppHandle, mode: String) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("main") {
+        if mode == "compact" {
+            // Compact mode: 300x120, Always on top, No decorations
+            window
+                .set_size(tauri::Size::Logical(tauri::LogicalSize {
+                    width: 300.0,
+                    height: 120.0,
+                }))
+                .map_err(|e| e.to_string())?;
+            window.set_always_on_top(true).map_err(|e| e.to_string())?;
+            window.set_decorations(false).map_err(|e| e.to_string())?;
+        } else {
+            // Normal mode: 800x600, Normal behavior, Decoratons enabled
+            window
+                .set_size(tauri::Size::Logical(tauri::LogicalSize {
+                    width: 800.0,
+                    height: 600.0,
+                }))
+                .map_err(|e| e.to_string())?;
+            window.set_always_on_top(false).map_err(|e| e.to_string())?;
+            window.set_decorations(true).map_err(|e| e.to_string())?;
+        }
+    }
+    Ok(())
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_notification::init())
+        .plugin(
+            tauri_plugin_global_shortcut::Builder::new()
+                .with_handler(|app, _shortcut, event| {
+                    use tauri_plugin_global_shortcut::ShortcutState;
+                    if event.state() == ShortcutState::Pressed {
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.emit("toggle-recording", ());
+                        }
+                    }
+                })
+                .build(),
+        )
         .manage(AudioState::new())
+        .setup(|app| {
+            // Setup system tray
+            tray::setup_tray(app)?;
+
+            // Register global shortcut
+            #[cfg(desktop)]
+            {
+                use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut};
+                // Use Ctrl+Alt+Space to avoid conflicts
+                let shortcut =
+                    Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::Space);
+
+                // Unregister if already registered (from previous run)
+                let _ = app.global_shortcut().unregister(shortcut);
+
+                // Register the shortcut - don't panic if it fails (e.g., if another app uses it)
+                if let Err(e) = app.global_shortcut().register(shortcut) {
+                    eprintln!("Warning: Failed to register global shortcut: {}", e);
+                }
+            }
+
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             greet,
             audio::start_recording,
@@ -123,7 +197,9 @@ fn main() {
             transcribe_audio,
             get_ollama_models,
             refine_text_with_ollama,
-            copy_to_clipboard
+            copy_to_clipboard,
+            request_toggle_recording,
+            set_window_mode
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

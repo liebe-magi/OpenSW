@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
+import { sendNotification } from '@tauri-apps/plugin-notification';
 import OllamaSettings from './OllamaSettings';
+import RecordingStatus from './RecordingStatus';
 
 interface AudioLevelEvent {
   amplitude: number;
@@ -14,35 +16,48 @@ export default function AudioRecorder() {
   const [status, setStatus] = useState('Ready');
   const [deviceName, setDeviceName] = useState<string>('');
   const [devices, setDevices] = useState<string[]>([]);
-  const [selectedDevice, setSelectedDevice] = useState<string>('');
+  const [selectedDevice, setSelectedDevice] = useState<string>(() => localStorage.getItem('selectedDevice') || '');
   const [modelPath, setModelPath] = useState('');
   const [transcription, setTranscription] = useState('');
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [language, setLanguage] = useState('ja');
-  const [ollamaModel, setOllamaModel] = useState('');
-  const [ollamaPrompt, setOllamaPrompt] = useState(
+  const [ollamaModel, setOllamaModel] = useState(() => localStorage.getItem('ollamaModel') || '');
+  const [ollamaPrompt, setOllamaPrompt] = useState(() => localStorage.getItem('ollamaPrompt') ||
     "以下の文章の『えー』『あの』などのフィラーを取り除き、句読点を適切に補って、自然な日本語の文章に修正してください。出力は修正後の文章のみにしてください。\n\n対象の文章: {text}"
   );
   const [refinedText, setRefinedText] = useState('');
   const [isRefining, setIsRefining] = useState(false);
 
+  // Refs for accessing state in event listeners
+  const isRecordingRef = useRef(isRecording);
+  const selectedDeviceRef = useRef(selectedDevice);
+  const ollamaModelRef = useRef(ollamaModel);
+  const ollamaPromptRef = useRef(ollamaPrompt);
+
   useEffect(() => {
-    const unlisten = listen<AudioLevelEvent>('audio-level-update', (event) => {
-      setAudioLevel(event.payload.amplitude);
-    });
+    isRecordingRef.current = isRecording;
+  }, [isRecording]);
 
-    // Fetch devices
-    invoke<string[]>('get_input_devices').then(setDevices).catch(console.error);
+  useEffect(() => {
+    selectedDeviceRef.current = selectedDevice;
+  }, [selectedDevice]);
 
-    return () => {
-      unlisten.then((f) => f());
-    };
-  }, []);
+  useEffect(() => {
+    ollamaModelRef.current = ollamaModel;
+    ollamaPromptRef.current = ollamaPrompt;
+    localStorage.setItem('ollamaModel', ollamaModel);
+    localStorage.setItem('ollamaPrompt', ollamaPrompt);
+  }, [ollamaModel, ollamaPrompt]);
+
+  useEffect(() => {
+    localStorage.setItem('selectedDevice', selectedDevice);
+  }, [selectedDevice]);
 
   const startRecording = async () => {
     try {
+      await invoke('set_window_mode', { mode: 'compact' });
       const device = await invoke<string>('start_recording', {
-        deviceName: selectedDevice || null,
+        deviceName: selectedDeviceRef.current || null,
       });
       setIsRecording(true);
       setDeviceName(device);
@@ -50,20 +65,83 @@ export default function AudioRecorder() {
     } catch (error) {
       console.error('Failed to start recording:', error);
       setStatus(`Error: ${error}`);
+      await invoke('set_window_mode', { mode: 'normal' });
+    }
+  };
+
+  const stopAndProcess = async () => {
+    try {
+      // 1. Stop Recording
+      const path = await invoke<string>('stop_recording');
+      setIsRecording(false);
+      setAudioLevel(0);
+      setStatus('Transcribing...');
+
+      // Restore normal window logic
+      await invoke('set_window_mode', { mode: 'normal' });
+
+      // 2. Transcribe
+      const text = await invoke<string>('transcribe_audio', { language: 'ja' }); // Default to JA for now or add state
+      setTranscription(text);
+
+      let finalText = text;
+
+      // 3. Refine (if model selected)
+      if (ollamaModelRef.current) {
+        setStatus('Refining...');
+        finalText = await invoke<string>('refine_text_with_ollama', {
+          text: text,
+          model: ollamaModelRef.current,
+          prompt: ollamaPromptRef.current
+        });
+        setRefinedText(finalText);
+      }
+
+      // 4. Copy to Clipboard
+      await invoke('copy_to_clipboard', { text: finalText });
+      setStatus('Copied to clipboard!');
+
+      // 5. Notify
+      sendNotification({
+        title: 'OpenSW',
+        body: 'Transcription copied to clipboard',
+      });
+
+    } catch (error) {
+      console.error('Pipeline failed:', error);
+      setStatus(`Pipeline Error: ${error}`);
+      await invoke('set_window_mode', { mode: 'normal' });
     }
   };
 
   const stopRecording = async () => {
-    try {
-      const path = await invoke<string>('stop_recording');
-      setIsRecording(false);
-      setStatus(`Saved to: ${path}`);
-      setAudioLevel(0);
-    } catch (error) {
-      console.error('Failed to stop recording:', error);
-      setStatus(`Error: ${error}`);
-    }
+    await stopAndProcess();
   };
+
+  useEffect(() => {
+    const unlistenAudioLevel = listen<AudioLevelEvent>('audio-level-update', (event) => {
+      setAudioLevel(event.payload.amplitude);
+    });
+
+    // Listen for global shortcut toggle-recording event
+    const unlistenToggle = listen('toggle-recording', async () => {
+      if (!isRecordingRef.current) {
+        // Start recording
+        startRecording();
+      } else {
+        // Stop recording and run pipeline
+        stopAndProcess();
+      }
+    });
+
+    // Fetch devices
+    invoke<string[]>('get_input_devices').then(setDevices).catch(console.error);
+
+    return () => {
+      unlistenAudioLevel.then((f) => f());
+      unlistenToggle.then((f) => f());
+    };
+  }, []); // Empty dependency array, relying on refs
 
   const playRecording = async () => {
     try {
@@ -135,10 +213,22 @@ export default function AudioRecorder() {
     }
   };
 
+  if (isRecording) {
+    return (
+      <RecordingStatus
+        status={status}
+        onStop={() => {
+          invoke('request_toggle_recording').catch(console.error);
+        }}
+      />
+    );
+  }
+
   return (
     <div
       style={{ padding: '20px', border: '1px solid #ccc', borderRadius: '8px', marginTop: '20px' }}
     >
+      <h1>AI Voice Assistant (Phase 1)</h1>
       <h2>Audio Recorder</h2>
 
       <div style={{ marginBottom: '15px' }}>

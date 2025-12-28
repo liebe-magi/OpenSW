@@ -27,10 +27,23 @@
     },
     "windows": [
       {
+        "label": "main",
         "title": "open-sw",
         "width": 800,
         "height": 600,
         "useHttpsScheme": true
+      },
+      {
+        "label": "compact",
+        "title": "Recording",
+        "width": 300,
+        "height": 100,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "transparent": true,
+        "visible": false,
+        "useHttpsScheme": true,
+        "url": "/compact"
       }
     ]
   }
