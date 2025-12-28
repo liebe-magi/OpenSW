@@ -4,6 +4,8 @@
 
 **Open-source Speech-to-Text Desktop Application**
 
+<img src="./logo.png" alt="OpenSW Logo" width="200"/>
+
 [日本語版 README はこちら](./README.ja.md)
 
 [![Tauri](https://img.shields.io/badge/Tauri-2.0-blue?logo=tauri)](https://tauri.app/)
