@@ -32,7 +32,15 @@ OpenSW is a cross-platform desktop application for quick and efficient speech-to
 
 ## Screenshots
 
-<!-- Add screenshots here when available -->
+### Main Window
+
+<img src="./screenshots/main_window.png" alt="Main Window" width="400"/>
+
+### Recording Workflow
+
+| Recording | Transcribing | Refining | Copied |
+|:---------:|:------------:|:--------:|:------:|
+| <img src="./screenshots/recording.png" alt="Recording" width="200"/> | <img src="./screenshots/transcribing.png" alt="Transcribing" width="200"/> | <img src="./screenshots/refining.png" alt="Refining" width="200"/> | <img src="./screenshots/copied.png" alt="Copied" width="200"/> |
 
 ## Installation
 
@@ -74,6 +82,10 @@ bun run tauri dev
 
 # Build for production
 bun run tauri build
+
+# Build for production (macOS)
+# If you encounter CMake errors with whisper-rs-sys, use:
+CMAKE_C_FLAGS="" CMAKE_CXX_FLAGS="" bun run tauri build
 ```
 
 ### Download Whisper Model

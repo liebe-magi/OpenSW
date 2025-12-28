@@ -30,7 +30,15 @@ OpenSW は、音声をテキストに変換するためのクロスプラット�
 
 ## スクリーンショット
 
-<!-- スクリーンショットがあればここに追加 -->
+### メインウィンドウ
+
+<img src="./screenshots/main_window.png" alt="メインウィンドウ" width="400"/>
+
+### 録音ワークフロー
+
+| 録音中 | 文字起こし中 | 修正中 | コピー完了 |
+|:------:|:------------:|:------:|:----------:|
+| <img src="./screenshots/recording.png" alt="録音中" width="200"/> | <img src="./screenshots/transcribing.png" alt="文字起こし中" width="200"/> | <img src="./screenshots/refining.png" alt="修正中" width="200"/> | <img src="./screenshots/copied.png" alt="コピー完了" width="200"/> |
 
 ## インストール
 
@@ -72,6 +80,10 @@ bun run tauri dev
 
 # 本番用ビルド
 bun run tauri build
+
+# 本番用ビルド（macOS）
+# whisper-rs-sys で CMake エラーが発生する場合は以下を使用：
+CMAKE_C_FLAGS="" CMAKE_CXX_FLAGS="" bun run tauri build
 ```
 
 ### Whisper モデルのダウンロード
