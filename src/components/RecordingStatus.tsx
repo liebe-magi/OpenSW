@@ -1,5 +1,3 @@
-import React from 'react';
-
 type PipelineStage = 'recording' | 'transcribing' | 'refining' | 'copying' | 'done';
 
 interface CompactStatusProps {

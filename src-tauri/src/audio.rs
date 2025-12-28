@@ -1,7 +1,7 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use std::fs::File;
 use std::io::BufReader;
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::{Arc, Mutex, mpsc};
 use tauri::{Emitter, State, WebviewWindow};
 
 pub struct AudioState {

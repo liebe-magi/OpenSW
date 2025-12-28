@@ -193,10 +193,10 @@ fn main() {
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(|app, _shortcut, event| {
                     use tauri_plugin_global_shortcut::ShortcutState;
-                    if event.state() == ShortcutState::Pressed {
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.emit("toggle-recording", ());
-                        }
+                    if event.state() == ShortcutState::Pressed
+                        && let Some(window) = app.get_webview_window("main")
+                    {
+                        let _ = window.emit("toggle-recording", ());
                     }
                 })
                 .build(),

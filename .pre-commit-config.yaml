@@ -10,6 +10,24 @@ repos:
         types: [rust]
         args: ['--manifest-path', 'src-tauri/Cargo.toml', '--all', '--', '--check']
 
+      - id: cargo-clippy
+        name: cargo clippy
+        description: Lint Rust sources with clippy.
+        entry: cargo clippy
+        language: system
+        args: ['--manifest-path', 'src-tauri/Cargo.toml', '--', '-D', 'warnings']
+        types: [rust]
+        pass_filenames: false
+
+      - id: cargo-check
+        name: cargo check
+        description: Check Rust code for errors without building.
+        entry: cargo check
+        language: system
+        args: ['--manifest-path', 'src-tauri/Cargo.toml']
+        types: [rust]
+        pass_filenames: false
+
       # Frontend hooks
       - id: eslint
         name: eslint
@@ -26,4 +44,12 @@ repos:
         language: system
         types: [text]
         files: \.(ts|tsx|css|json|md)$
+        pass_filenames: false
+
+      - id: frontend-build
+        name: frontend build
+        description: Build frontend to verify compilation.
+        entry: bun run build
+        language: system
+        files: \.(ts|tsx|css|html)$
         pass_filenames: false
