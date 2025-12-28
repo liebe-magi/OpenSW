@@ -17,13 +17,13 @@
     "@tauri-apps/plugin-global-shortcut": "~2",
     "@tauri-apps/plugin-notification": "~2",
     "@tauri-apps/plugin-shell": "~2",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
-    "@types/react": "^18.2.15",
-    "@types/react-dom": "^18.2.7",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "@typescript-eslint/eslint-plugin": "^8.48.0",
     "@typescript-eslint/parser": "^8.48.0",
     "@vitejs/plugin-react": "^4.2.1",
