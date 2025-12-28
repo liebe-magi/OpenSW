@@ -44,7 +44,21 @@ OpenSW is a cross-platform desktop application for quick and efficient speech-to
 
 ## Installation
 
-### Prerequisites
+### Download Pre-built Binaries
+
+Pre-built binaries are available for Windows and macOS (Apple Silicon):
+
+👉 **[Download from Releases](https://github.com/liebe-magi/OpenSW/releases/tag/v0.1.0)**
+
+| Platform              | File                         |
+| --------------------- | ---------------------------- |
+| Windows (exe)         | `OpenSW.exe`                 |
+| Windows (msi)         | `OpenSW_0.1.0_x64_en-US.msi` |
+| macOS (Apple Silicon) | `OpenSW_0.1.0_aarch64.dmg`   |
+
+### Build from Source
+
+#### Prerequisites
 
 - [Bun](https://bun.sh/) (or npm/yarn)
 - [Rust](https://www.rust-lang.org/tools/install) (1.70+)
@@ -67,7 +81,7 @@ OpenSW is a cross-platform desktop application for quick and efficient speech-to
 - Standard development tools (`build-essential`, etc.)
 - CUDA Toolkit (for GPU acceleration)
 
-### Build from Source
+#### Build Commands
 
 ```bash
 # Clone the repository

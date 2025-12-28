@@ -42,7 +42,21 @@ OpenSW は、音声をテキストに変換するためのクロスプラット�
 
 ## インストール
 
-### 必要環境
+### ビルド済みバイナリのダウンロード
+
+Windows および macOS（Apple Silicon）向けのビルド済みバイナリを提供しています：
+
+👉 **[リリースページからダウンロード](https://github.com/liebe-magi/OpenSW/releases/tag/v0.1.0)**
+
+| プラットフォーム      | ファイル                     |
+| --------------------- | ---------------------------- |
+| Windows (exe)         | `OpenSW.exe`                 |
+| Windows (msi)         | `OpenSW_0.1.0_x64_en-US.msi` |
+| macOS (Apple Silicon) | `OpenSW_0.1.0_aarch64.dmg`   |
+
+### ソースからビルド
+
+#### 必要環境
 
 - [Bun](https://bun.sh/)（または npm/yarn）
 - [Rust](https://www.rust-lang.org/tools/install)（1.70 以上）
@@ -65,7 +79,7 @@ OpenSW は、音声をテキストに変換するためのクロスプラット�
 - 標準的な開発ツール（`build-essential` など）
 - CUDA Toolkit（GPU アクセラレーション用）
 
-### ソースからビルド
+#### ビルドコマンド
 
 ```bash
 # リポジトリをクローン
