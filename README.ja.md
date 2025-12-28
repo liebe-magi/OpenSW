@@ -9,7 +9,7 @@
 [![Tauri](https://img.shields.io/badge/Tauri-2.0-blue?logo=tauri)](https://tauri.app/)
 [![React](https://img.shields.io/badge/React-18-blue?logo=react)](https://reactjs.org/)
 [![Rust](https://img.shields.io/badge/Rust-1.70+-orange?logo=rust)](https://www.rust-lang.org/)
-[![License](https://img.shields.io/badge/License-MIT-green)](./LICENSE)
+[![License](https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-blue)](./LICENSE-MIT)
 
 </div>
 
@@ -189,7 +189,12 @@ bun run format       # Prettier でフォーマット
 
 ## ライセンス
 
-このプロジェクトは MIT ライセンスの下でオープンソースとして公開されています。
+このプロジェクトは以下のいずれかのライセンスの下でデュアルライセンスされています：
+
+- [MIT ライセンス](./LICENSE-MIT)
+- [Apache ライセンス 2.0](./LICENSE-APACHE)
+
+お好みに応じてお選びください。
 
 ## 謝辞
 
