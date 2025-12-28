@@ -41,6 +41,19 @@ async fn select_model(
 }
 
 #[tauri::command]
+async fn load_model(state: tauri::State<'_, AudioState>, path: String) -> Result<String, String> {
+    use std::path::Path;
+    if path.is_empty() {
+        return Err("Empty path provided".to_string());
+    }
+    if !Path::new(&path).exists() {
+        return Err(format!("Model file not found: {}", path));
+    }
+    *state.model_path.lock().map_err(|e| e.to_string())? = Some(path.clone());
+    Ok(path)
+}
+
+#[tauri::command]
 async fn transcribe_audio(
     state: tauri::State<'_, AudioState>,
     language: Option<String>,
@@ -85,21 +98,25 @@ async fn transcribe_audio(
 }
 
 #[tauri::command]
-async fn get_ollama_models() -> Result<Vec<String>, String> {
-    tauri::async_runtime::spawn_blocking(|| ollama::get_models().map_err(|e| e.to_string()))
-        .await
-        .map_err(|e| e.to_string())?
+async fn get_ollama_models(base_url: String) -> Result<Vec<String>, String> {
+    let url = base_url.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        ollama::get_models(&url).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
 async fn refine_text_with_ollama(
+    base_url: String,
     text: String,
     model: String,
     prompt: String,
 ) -> Result<String, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let final_prompt = prompt.replace("{text}", &text);
-        ollama::generate(&model, &final_prompt).map_err(|e| e.to_string())
+        ollama::generate(&base_url, &model, &final_prompt).map_err(|e| e.to_string())
     })
     .await
     .map_err(|e| e.to_string())?
@@ -122,26 +139,47 @@ async fn request_toggle_recording(app: tauri::AppHandle) -> Result<(), String> {
 async fn set_window_mode(app: tauri::AppHandle, mode: String) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("main") {
         if mode == "compact" {
-            // Compact mode: 300x120, Always on top, No decorations
+            // Compact mode: 400x80, Always on top, No decorations
             window
                 .set_size(tauri::Size::Logical(tauri::LogicalSize {
-                    width: 300.0,
-                    height: 120.0,
+                    width: 400.0,
+                    height: 80.0,
                 }))
                 .map_err(|e| e.to_string())?;
             window.set_always_on_top(true).map_err(|e| e.to_string())?;
             window.set_decorations(false).map_err(|e| e.to_string())?;
+            // Ensure window is visible (in case it was hidden)
+            window.show().map_err(|e| e.to_string())?;
+            window.set_focus().map_err(|e| e.to_string())?;
         } else {
-            // Normal mode: 800x600, Normal behavior, Decoratons enabled
+            // Normal mode: 500x720, Normal behavior, Decorations enabled
             window
                 .set_size(tauri::Size::Logical(tauri::LogicalSize {
-                    width: 800.0,
-                    height: 600.0,
+                    width: 500.0,
+                    height: 720.0,
                 }))
                 .map_err(|e| e.to_string())?;
             window.set_always_on_top(false).map_err(|e| e.to_string())?;
             window.set_decorations(true).map_err(|e| e.to_string())?;
         }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+async fn hide_window(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("main") {
+        // Reset to normal mode before hiding
+        window
+            .set_size(tauri::Size::Logical(tauri::LogicalSize {
+                width: 500.0,
+                height: 720.0,
+            }))
+            .map_err(|e| e.to_string())?;
+        window.set_always_on_top(false).map_err(|e| e.to_string())?;
+        window.set_decorations(true).map_err(|e| e.to_string())?;
+        // Hide the window
+        window.hide().map_err(|e| e.to_string())?;
     }
     Ok(())
 }
@@ -187,6 +225,17 @@ fn main() {
 
             Ok(())
         })
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                // Only intercept close for main window
+                if window.label() == "main" {
+                    // Prevent the window from closing
+                    api.prevent_close();
+                    // Hide the window instead
+                    let _ = window.hide();
+                }
+            }
+        })
         .invoke_handler(tauri::generate_handler![
             greet,
             audio::start_recording,
@@ -194,12 +243,14 @@ fn main() {
             audio::play_recording,
             audio::get_input_devices,
             select_model,
+            load_model,
             transcribe_audio,
             get_ollama_models,
             refine_text_with_ollama,
             copy_to_clipboard,
             request_toggle_recording,
-            set_window_mode
+            set_window_mode,
+            hide_window
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

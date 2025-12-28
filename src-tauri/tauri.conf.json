@@ -29,8 +29,8 @@
       {
         "label": "main",
         "title": "open-sw",
-        "width": 800,
-        "height": 600,
+        "width": 500,
+        "height": 720,
         "useHttpsScheme": true
       },
       {
