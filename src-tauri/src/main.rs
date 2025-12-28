@@ -13,16 +13,24 @@ mod clipboard;
 mod ollama;
 
 use audio::AudioState;
-use tauri::api::dialog::blocking::FileDialogBuilder;
+use tauri_plugin_dialog::DialogExt;
 
 #[tauri::command]
-async fn select_model(state: tauri::State<'_, AudioState>) -> Result<String, String> {
-    let file_path = FileDialogBuilder::new()
+async fn select_model(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, AudioState>,
+) -> Result<String, String> {
+    let file_path = app
+        .dialog()
+        .file()
         .add_filter("Whisper Model", &["bin"])
-        .pick_file();
+        .blocking_pick_file();
 
     if let Some(path) = file_path {
-        let path_str = path.to_string_lossy().to_string();
+        let path_str = path.as_path().map_or_else(
+            || Err("Invalid path".to_string()),
+            |p| Ok(p.to_string_lossy().to_string()),
+        )?;
         *state.model_path.lock().map_err(|e| e.to_string())? = Some(path_str.clone());
         Ok(path_str)
     } else {
@@ -102,6 +110,8 @@ fn copy_to_clipboard(text: String) -> Result<(), String> {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_dialog::init())
         .manage(AudioState::new())
         .invoke_handler(tauri::generate_handler![
             greet,

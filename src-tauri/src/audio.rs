@@ -2,7 +2,7 @@ use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use std::fs::File;
 use std::io::BufReader;
 use std::sync::{mpsc, Arc, Mutex};
-use tauri::{State, Window};
+use tauri::{Emitter, State, WebviewWindow};
 
 pub struct AudioState {
     pub is_recording: Mutex<bool>,
@@ -44,7 +44,7 @@ pub fn get_input_devices() -> Result<Vec<String>, String> {
 
 #[tauri::command]
 pub fn start_recording(
-    window: Window,
+    window: WebviewWindow,
     state: State<AudioState>,
     device_name: Option<String>,
 ) -> Result<String, String> {
@@ -140,7 +140,7 @@ pub fn start_recording(
     Ok(selected_device_name)
 }
 
-fn write_input_data(input: &[f32], buffer: &Arc<Mutex<Vec<f32>>>, window: &Window) {
+fn write_input_data(input: &[f32], buffer: &Arc<Mutex<Vec<f32>>>, window: &WebviewWindow) {
     if let Ok(mut buf) = buffer.lock() {
         buf.extend_from_slice(input);
 
