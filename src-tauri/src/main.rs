@@ -156,7 +156,7 @@ async fn set_window_mode(app: tauri::AppHandle, mode: String) -> Result<(), Stri
             window
                 .set_size(tauri::Size::Logical(tauri::LogicalSize {
                     width: 500.0,
-                    height: 720.0,
+                    height: 750.0,
                 }))
                 .map_err(|e| e.to_string())?;
             window.set_always_on_top(false).map_err(|e| e.to_string())?;
@@ -173,7 +173,7 @@ async fn hide_window(app: tauri::AppHandle) -> Result<(), String> {
         window
             .set_size(tauri::Size::Logical(tauri::LogicalSize {
                 width: 500.0,
-                height: 720.0,
+                height: 750.0,
             }))
             .map_err(|e| e.to_string())?;
         window.set_always_on_top(false).map_err(|e| e.to_string())?;
