@@ -20,7 +20,7 @@ hound = "3.5.1"
 rodio = "0.17.3"
 rubato = "0.14"
 anyhow = "1.0"
-reqwest = { version = "0.11", features = ["json", "blocking"] }
+reqwest = { version = "0.12", features = ["json", "blocking"] }
 arboard = "3.3"
 tauri-plugin-shell = "2"
 tauri-plugin-dialog = "2"
