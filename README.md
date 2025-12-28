@@ -38,8 +38,8 @@ OpenSW is a cross-platform desktop application for quick and efficient speech-to
 
 ### Recording Workflow
 
-| Recording | Transcribing | Refining | Copied |
-|:---------:|:------------:|:--------:|:------:|
+|                              Recording                               |                                Transcribing                                |                              Refining                              |                             Copied                             |
+| :------------------------------------------------------------------: | :------------------------------------------------------------------------: | :----------------------------------------------------------------: | :------------------------------------------------------------: |
 | <img src="./screenshots/recording.png" alt="Recording" width="200"/> | <img src="./screenshots/transcribing.png" alt="Transcribing" width="200"/> | <img src="./screenshots/refining.png" alt="Refining" width="200"/> | <img src="./screenshots/copied.png" alt="Copied" width="200"/> |
 
 ## Installation
