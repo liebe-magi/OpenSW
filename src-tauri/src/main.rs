@@ -85,13 +85,10 @@ async fn transcribe_audio(
 
     state_w.full(params, &samples).map_err(|e| e.to_string())?;
 
-    let num_segments = state_w.full_n_segments().map_err(|e| e.to_string())?;
     let mut text = String::new();
-    for i in 0..num_segments {
-        let segment = state_w
-            .full_get_segment_text(i)
-            .map_err(|e| e.to_string())?;
-        text.push_str(&segment);
+    for segment in state_w.as_iter() {
+        let segment_text = segment.to_str_lossy().map_err(|e| e.to_string())?;
+        text.push_str(segment_text.as_ref());
     }
 
     Ok(text)
