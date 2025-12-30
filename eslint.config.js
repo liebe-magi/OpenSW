@@ -30,7 +30,7 @@ export default tseslint.config(
   },
   // Node.js scripts configuration
   {
-    files: ['scripts/**/*.js'],
+    files: ['scripts/**/*.{js,mjs}'],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.node,

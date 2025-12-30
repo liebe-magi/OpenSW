@@ -4,6 +4,8 @@
 
 **オープンソース音声認識デスクトップアプリケーション**
 
+<img src="./logo.png" alt="OpenSW Logo" width="200"/>
+
 [English README](./README.md)
 
 [![Tauri](https://img.shields.io/badge/Tauri-2.0-blue?logo=tauri)](https://tauri.app/)
@@ -92,12 +94,8 @@ bun install
 # 開発モードで実行
 bun run tauri dev
 
-# 本番用ビルド
-bun run tauri build
-
-# 本番用ビルド（macOS）
-# whisper-rs-sys で CMake エラーが発生する場合は以下を使用：
-CMAKE_C_FLAGS="" CMAKE_CXX_FLAGS="" bun run tauri build
+# 本番用ビルド（プラットフォーム固有の環境変数を自動設定）
+bun run tauri:build
 ```
 
 ### Whisper モデルのダウンロード
@@ -139,6 +137,22 @@ LLM によるテキスト修正を有効にするには：
    - **URL**: `http://localhost:11434`（デフォルト）
    - **Model**: インストール済みのモデルを選択
    - **Prompt**: 修正用プロンプトをカスタマイズ
+
+## トラブルシューティング
+
+### macOS: "OpenSW.app は壊れているため開けません"
+
+アプリを起動しようとした際に **「OpenSW.app は壊れているため開けません。ゴミ箱に入れる必要があります。」** というメッセージが表示される場合があります。これはアプリが Apple による公証（Notarization）を受けていないため、macOS のセキュリティ機能（Gatekeeper）によって実行がブロックされている状態です。ファイル自体は破損していません。
+
+**解決策:**
+
+ターミナルで以下のコマンドを実行して、アプリの検疫属性（Quarantine）を解除してください：
+
+```bash
+xattr -cr /Applications/OpenSW.app
+```
+
+_（アプリを別の場所にインストールした場合は、パスを適宜変更してください）_
 
 ## 設定
 
@@ -190,7 +204,7 @@ bun run tauri dev    # Tauri を開発モードで実行
 
 # ビルド
 bun run build        # フロントエンドビルド
-bun run tauri build  # 配布用ビルド
+bun run tauri:build  # 配布用ビルド（プラットフォーム固有の環境変数を自動設定）
 
 # コード品質
 bun run lint         # ESLint 実行

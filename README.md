@@ -94,12 +94,8 @@ bun install
 # Run in development mode
 bun run tauri dev
 
-# Build for production
-bun run tauri build
-
-# Build for production (macOS)
-# If you encounter CMake errors with whisper-rs-sys, use:
-CMAKE_C_FLAGS="" CMAKE_CXX_FLAGS="" bun run tauri build
+# Build for production (sets platform-specific environment variables automatically)
+bun run tauri:build
 ```
 
 ### Download Whisper Model
@@ -141,6 +137,22 @@ To enable LLM-based text refinement:
    - **URL**: `http://localhost:11434` (default)
    - **Model**: Select your installed model
    - **Prompt**: Customize the refinement prompt
+
+## Troubleshooting
+
+### macOS: "App is damaged and can't be opened"
+
+If you see a message saying **"OpenSW.app is damaged and can't be opened"** when trying to run the app, this is due to macOS Gatekeeper security settings (because the app is not notarized by Apple).
+
+**Solution:**
+
+Run the following command in Terminal to remove the quarantine attribute:
+
+```bash
+xattr -cr /Applications/OpenSW.app
+```
+
+_(Adjust the path if you installed the app somewhere else)_
 
 ## Configuration
 
@@ -192,7 +204,7 @@ bun run tauri dev    # Run Tauri in development mode
 
 # Build
 bun run build        # Build frontend
-bun run tauri build  # Build distributable
+bun run tauri:build  # Build distributable (with platform-specific env vars)
 
 # Code Quality
 bun run lint         # Run ESLint
