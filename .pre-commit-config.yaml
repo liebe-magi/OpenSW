@@ -34,7 +34,7 @@ repos:
         description: Lint TypeScript/TSX files with ESLint.
         entry: bun run lint
         language: system
-        files: \.(ts|tsx)$
+        files: \.(ts|tsx|js|mjs)$
         pass_filenames: false
 
       - id: prettier
