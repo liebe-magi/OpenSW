@@ -15,20 +15,21 @@ const currentPlatform = platform();
 const env = { ...process.env };
 
 if (currentPlatform === 'darwin') {
-  // macOS: whisper-rs uses C++ std::filesystem which requires macOS 10.15+
-  env.MACOSX_DEPLOYMENT_TARGET = '10.15';
-  env.CMAKE_OSX_DEPLOYMENT_TARGET = '10.15';
-  console.log('🍎 macOS detected: Setting deployment target to 10.15');
+    // macOS: whisper-rs uses C++ std::filesystem which requires macOS 10.15+
+    env.MACOSX_DEPLOYMENT_TARGET = '10.15';
+    env.CMAKE_OSX_DEPLOYMENT_TARGET = '10.15';
+    console.log('🍎 macOS detected: Setting deployment target to 10.15');
 } else if (currentPlatform === 'win32') {
-  // Windows: CUDA and MSVC settings for whisper-rs-sys
-  env.CMAKE_CUDA_ARCHITECTURES = '75;86;89;120';
-  env.CMAKE_CUDA_FLAGS = '-DCCCL_IGNORE_DEPRECATED_CPP_DIALECT -std=c++17 -Xcompiler /utf-8';
-  env.CMAKE_CXX_FLAGS = '/utf-8';
-  env.CMAKE_C_FLAGS = '/utf-8';
-  console.log('🪟 Windows detected: Setting CUDA and MSVC flags');
+    // Windows: CUDA and MSVC settings for whisper-rs-sys
+    env.CMAKE_CUDA_ARCHITECTURES = '75;86;89;120';
+    env.CMAKE_CUDA_FLAGS = '-DCCCL_IGNORE_DEPRECATED_CPP_DIALECT -std=c++17 -Xcompiler /utf-8';
+    env.CMAKE_CXX_FLAGS = '/utf-8';
+    env.CMAKE_C_FLAGS = '/utf-8';
+    console.log('🪟 Windows detected: Setting CUDA and MSVC flags');
 } else if (currentPlatform === 'linux') {
-  // Linux: Add any Linux-specific settings here if needed
-  console.log('🐧 Linux detected');
+    // Linux: currently no additional environment variables are required.
+    // This branch is intentionally a placeholder for future Linux-specific settings.
+    console.log('🐧 Linux detected (no additional env vars required)');
 }
 
 // Get additional arguments passed to the script
@@ -39,11 +40,11 @@ console.log(`🚀 Running: tauri ${tauriArgs.join(' ')}\n`);
 
 // Run tauri build with the configured environment
 const child = spawn('bun', ['tauri', ...tauriArgs], {
-  env,
-  stdio: 'inherit',
-  shell: true,
+    env,
+    stdio: 'inherit',
+    shell: true,
 });
 
 child.on('close', (code) => {
-  process.exit(code ?? 0);
+    process.exit(code ?? 0);
 });
