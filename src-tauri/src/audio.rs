@@ -37,10 +37,20 @@ pub fn get_input_devices() -> Result<Vec<String>, String> {
     let mut device_names = Vec::new();
     for device in devices {
         if let Ok(desc) = device.description() {
-            device_names.push(desc.name().to_string());
+            device_names.push(format_device_name(&desc));
         }
     }
     Ok(device_names)
+}
+
+/// Format device name with extended info if available
+fn format_device_name(desc: &cpal::device_description::DeviceDescription) -> String {
+    // extended() contains the full device name like "マイク (NVIDIA Broadcast)"
+    if let Some(full_name) = desc.extended().first() {
+        full_name.clone()
+    } else {
+        desc.name().to_string()
+    }
 }
 
 #[tauri::command]
@@ -69,7 +79,11 @@ pub fn start_recording(
     let device = if let Some(name) = device_name {
         host.input_devices()
             .map_err(|e| e.to_string())?
-            .find(|x| x.description().map(|d| d.name() == name).unwrap_or(false))
+            .find(|x| {
+                x.description()
+                    .map(|d| format_device_name(&d) == name)
+                    .unwrap_or(false)
+            })
             .ok_or(format!("Device '{}' not found", name))?
     } else {
         host.default_input_device()
@@ -78,7 +92,7 @@ pub fn start_recording(
 
     let selected_device_name = device
         .description()
-        .map(|d| d.name().to_string())
+        .map(|d| format_device_name(&d))
         .unwrap_or_else(|_| "Unknown Device".to_string());
     let config = device.default_input_config().map_err(|e| e.to_string())?;
 
