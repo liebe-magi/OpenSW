@@ -3031,6 +3031,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "arboard",
+ "audioadapter-buffers",
  "cpal 0.17.0",
  "hound",
  "reqwest",

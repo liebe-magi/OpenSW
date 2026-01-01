@@ -1,6 +1,8 @@
 use anyhow::{Context, Result, anyhow};
+use audioadapter_buffers::owned::SequentialOwned;
 use rubato::{
-    Resampler, SincFixedIn, SincInterpolationParameters, SincInterpolationType, WindowFunction,
+    Async, FixedAsync, Resampler, SincInterpolationParameters, SincInterpolationType,
+    WindowFunction,
 };
 
 pub fn read_and_resample(path: &str) -> Result<Vec<f32>> {
@@ -45,7 +47,7 @@ pub fn read_and_resample(path: &str) -> Result<Vec<f32>> {
         return Ok(mono_samples);
     }
 
-    // Resample
+    // Resample using rubato 1.0 API
     let params = SincInterpolationParameters {
         sinc_len: 256,
         f_cutoff: 0.95,
@@ -55,14 +57,35 @@ pub fn read_and_resample(path: &str) -> Result<Vec<f32>> {
     };
 
     let resample_ratio = target_sample_rate as f64 / source_sample_rate as f64;
+    let input_frames = mono_samples.len();
 
-    let mut resampler = SincFixedIn::<f32>::new(resample_ratio, 2.0, params, mono_samples.len(), 1)
-        .map_err(|e| anyhow!("Failed to create resampler: {}", e))?;
+    let mut resampler = Async::<f32>::new_sinc(
+        resample_ratio,
+        2.0,
+        &params,
+        input_frames,
+        1,
+        FixedAsync::Input,
+    )
+    .map_err(|e| anyhow!("Failed to create resampler: {}", e))?;
 
-    let waves_in = vec![mono_samples];
-    let waves_out = resampler
-        .process(&waves_in, None)
+    // Prepare input data using SequentialOwned (1 channel, input_frames frames)
+    let input_adapter = SequentialOwned::new_from(mono_samples, 1, input_frames)
+        .map_err(|e| anyhow!("Failed to create input adapter: {:?}", e))?;
+
+    // Prepare output buffer
+    let output_frames = (input_frames as f64 * resample_ratio * 1.1) as usize + 1024;
+    let output_data = vec![0.0f32; output_frames];
+    let mut output_adapter = SequentialOwned::new_from(output_data, 1, output_frames)
+        .map_err(|e| anyhow!("Failed to create output adapter: {:?}", e))?;
+
+    // Process all input (4 arguments: input, output, chunk_size, indexing)
+    let (_frames_read, frames_written) = resampler
+        .process_all_into_buffer(&input_adapter, &mut output_adapter, input_frames, None)
         .map_err(|e| anyhow!("Resampling failed: {}", e))?;
 
-    Ok(waves_out[0].clone())
+    // Extract resampled data
+    let output_data = output_adapter.take_data();
+    let resampled = output_data[..frames_written].to_vec();
+    Ok(resampled)
 }
