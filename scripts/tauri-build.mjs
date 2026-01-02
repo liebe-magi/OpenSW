@@ -7,12 +7,44 @@
  */
 
 import { spawn } from 'child_process';
-import { platform } from 'os';
+import { platform, homedir } from 'os';
+import { readFileSync, existsSync } from 'fs';
+import { resolve } from 'path';
 
 const currentPlatform = platform();
 
 // Set platform-specific environment variables
 const env = { ...process.env };
+
+// Load .env.local if exists
+const envLocalPath = resolve(process.cwd(), '.env.local');
+if (existsSync(envLocalPath)) {
+  const content = readFileSync(envLocalPath, 'utf-8');
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const match = trimmed.match(/^([^=]+)=["']?(.+?)["']?$/);
+    if (match) {
+      env[match[1].trim()] = match[2];
+    }
+  }
+  console.log('📦 Loaded .env.local');
+}
+
+// Load signing key from file path if specified
+if (env.TAURI_SIGNING_PRIVATE_KEY_PATH && !env.TAURI_SIGNING_PRIVATE_KEY) {
+  const keyPath = env.TAURI_SIGNING_PRIVATE_KEY_PATH.replace(/^~/, homedir());
+  if (existsSync(keyPath)) {
+    env.TAURI_SIGNING_PRIVATE_KEY = readFileSync(keyPath, 'utf-8');
+    console.log('🔑 Loaded signing key from', keyPath);
+  } else {
+    console.error('❌ Signing key file not found:', keyPath);
+    console.error(
+      '   The updater requires signed builds. Please check your .env.local configuration.'
+    );
+    process.exit(1);
+  }
+}
 
 if (currentPlatform === 'darwin') {
   // macOS: whisper-rs uses C++ std::filesystem which requires macOS 10.15+
