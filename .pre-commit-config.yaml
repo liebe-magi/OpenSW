@@ -53,3 +53,11 @@ repos:
         language: system
         files: \.(ts|tsx|css|html)$
         pass_filenames: false
+
+      - id: check-version-sync
+        name: check version sync
+        description: Verify version is synced across package.json, Cargo.toml, and tauri.conf.json.
+        entry: bash scripts/check-version-sync.sh
+        language: system
+        files: (package\.json|Cargo\.toml|tauri\.conf\.json)$
+        pass_filenames: false

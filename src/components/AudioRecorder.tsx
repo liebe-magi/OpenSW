@@ -4,6 +4,7 @@ import { listen } from '@tauri-apps/api/event';
 import { sendNotification } from '@tauri-apps/plugin-notification';
 import OllamaSettings from './OllamaSettings';
 import RecordingStatus from './RecordingStatus';
+import UpdateChecker from './UpdateChecker';
 
 interface AudioLevelEvent {
   amplitude: number;
@@ -275,6 +276,11 @@ export default function AudioRecorder() {
           baseUrl={ollamaUrl}
           onBaseUrlChange={setOllamaUrl}
         />
+      </section>
+
+      <section className="settings-section">
+        <h2>App Updates</h2>
+        <UpdateChecker />
       </section>
 
       <footer className="settings-footer">

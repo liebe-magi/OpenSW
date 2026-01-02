@@ -48,3 +48,12 @@ jobs:
 
       - name: Build
         run: bun run build
+
+  version_check:
+    name: Version Sync Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check version sync
+        run: bash scripts/check-version-sync.sh

@@ -8,6 +8,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -18,9 +19,14 @@
   },
   "productName": "OpenSW",
   "mainBinaryName": "OpenSW",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "identifier": "dev.liebe-magi.opensw",
-  "plugins": {},
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEE5RUQwMTE5REU4RDZDNjQKUldSa2JJM2VHUUh0cWFPeVVGK0JkY3JvTEdwUDhDOUFyQzFKbjBNTk5BVVozOU5pZFUwTGlpVVEK",
+      "endpoints": ["https://github.com/liebe-magi/OpenSW/releases/latest/download/latest.json"]
+    }
+  },
   "app": {
     "security": {
       "csp": null
