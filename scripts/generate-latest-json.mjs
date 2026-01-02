@@ -7,7 +7,7 @@
  * allowing separate builds on different machines (Windows, macOS, Linux).
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { resolve, join } from 'path';
 import { platform } from 'os';
 
@@ -23,7 +23,13 @@ console.log(`📦 Generating latest.json for version ${version} on ${currentPlat
 
 // Bundle paths
 const bundleDir = resolve('src-tauri', 'target', 'release', 'bundle');
-const outputPath = join(bundleDir, 'latest.json');
+const releaseDir = resolve('release');
+const outputPath = join(releaseDir, 'latest.json');
+
+// Create release directory if it doesn't exist
+if (!existsSync(releaseDir)) {
+  mkdirSync(releaseDir, { recursive: true });
+}
 
 // Detect platform-specific files
 const platforms = {};
