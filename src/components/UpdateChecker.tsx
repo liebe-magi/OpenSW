@@ -2,7 +2,14 @@ import { useState, useCallback } from 'react';
 import { check, type Update } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 
-type UpdateStatus = 'idle' | 'checking' | 'available' | 'downloading' | 'installing' | 'error';
+type UpdateStatus =
+  | 'idle'
+  | 'checking'
+  | 'available'
+  | 'downloading'
+  | 'installing'
+  | 'up-to-date'
+  | 'error';
 
 export default function UpdateChecker() {
   const [status, setStatus] = useState<UpdateStatus>('idle');
@@ -19,8 +26,7 @@ export default function UpdateChecker() {
         setUpdate(updateInfo);
         setStatus('available');
       } else {
-        setStatus('idle');
-        setError('No updates available');
+        setStatus('up-to-date');
       }
     } catch (err) {
       setStatus('error');
@@ -92,6 +98,15 @@ export default function UpdateChecker() {
       )}
 
       {status === 'installing' && <span className="update-status">Installing...</span>}
+
+      {status === 'up-to-date' && (
+        <div className="update-up-to-date">
+          <span>✓ Up to date</span>
+          <button onClick={checkForUpdate} className="update-btn">
+            Check Again
+          </button>
+        </div>
+      )}
 
       {status === 'error' && (
         <div className="update-error">
@@ -171,6 +186,13 @@ export default function UpdateChecker() {
           gap: 10px;
           font-size: 0.85em;
           color: #ff6b6b;
+        }
+        .update-up-to-date {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 0.85em;
+          color: #4dff88;
         }
       `}</style>
     </div>
