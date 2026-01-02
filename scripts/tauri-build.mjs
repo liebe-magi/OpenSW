@@ -38,7 +38,11 @@ if (env.TAURI_SIGNING_PRIVATE_KEY_PATH && !env.TAURI_SIGNING_PRIVATE_KEY) {
     env.TAURI_SIGNING_PRIVATE_KEY = readFileSync(keyPath, 'utf-8');
     console.log('🔑 Loaded signing key from', keyPath);
   } else {
-    console.warn('⚠️  Signing key file not found:', keyPath);
+    console.error('❌ Signing key file not found:', keyPath);
+    console.error(
+      '   The updater requires signed builds. Please check your .env.local configuration.'
+    );
+    process.exit(1);
   }
 }
 

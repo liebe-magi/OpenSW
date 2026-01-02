@@ -58,6 +58,7 @@ export default function UpdateChecker() {
       await relaunch();
     } catch (err) {
       setStatus('error');
+      setProgress(0);
       setError(err instanceof Error ? err.message : String(err));
     }
   }, [update]);

@@ -56,7 +56,7 @@ if (currentPlatform === 'win32') {
     const arch = process.arch === 'arm64' ? 'aarch64' : 'x86_64';
     platforms[`darwin-${arch}`] = {
       signature,
-      url: `https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/v${version}/OpenSW_${arch}.app.tar.gz`,
+      url: `https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/v${version}/${appTarGz}`,
     };
     filesToUpload.push(join(macosDir, appTarGz), appSigPath);
     console.log(`   ✓ Found macOS ${arch} bundle`);
