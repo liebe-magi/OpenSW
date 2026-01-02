@@ -149,9 +149,10 @@ export default function AudioRecorder() {
       setAudioLevel(0);
       setStatus('Transcribing...');
 
+      const isMacOS = navigator.userAgent.includes('Mac');
       const text = await invoke<string>('transcribe_audio', {
         language: 'ja',
-        useGpu: selectedComputeDeviceRef.current === 'gpu',
+        useGpu: selectedComputeDeviceRef.current === 'gpu' || isMacOS,
       });
       setTranscription(text);
 
@@ -332,24 +333,26 @@ export default function AudioRecorder() {
                   </span>
                 </div>
               </div>
-              <div className="setting-row">
-                <label>Inference Device</label>
-                <div className="input-group">
-                  <div className="select-wrapper">
-                    <select
-                      value={selectedComputeDevice}
-                      onChange={(e) => setSelectedComputeDevice(e.target.value)}
-                    >
-                      {computeDevices.map((device) => (
-                        <option key={device.device_type} value={device.device_type}>
-                          {device.name}
-                        </option>
-                      ))}
-                    </select>
-                    <span className="select-arrow">▼</span>
+              {!navigator.userAgent.includes('Mac') && (
+                <div className="setting-row">
+                  <label>Inference Device</label>
+                  <div className="input-group">
+                    <div className="select-wrapper">
+                      <select
+                        value={selectedComputeDevice}
+                        onChange={(e) => setSelectedComputeDevice(e.target.value)}
+                      >
+                        {computeDevices.map((device) => (
+                          <option key={device.device_type} value={device.device_type}>
+                            {device.name}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="select-arrow">▼</span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </section>
 
             <section className="settings-section">
