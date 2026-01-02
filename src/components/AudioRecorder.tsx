@@ -12,6 +12,8 @@ interface AudioLevelEvent {
 
 type PipelineStage = 'idle' | 'recording' | 'transcribing' | 'refining' | 'copying' | 'done';
 
+const IS_MACOS = navigator.userAgent.includes('Mac');
+
 export default function AudioRecorder() {
   const [pipelineStage, setPipelineStage] = useState<PipelineStage>('idle');
   const [, setAudioLevel] = useState(0);
@@ -149,10 +151,9 @@ export default function AudioRecorder() {
       setAudioLevel(0);
       setStatus('Transcribing...');
 
-      const isMacOS = navigator.userAgent.includes('Mac');
       const text = await invoke<string>('transcribe_audio', {
         language: 'ja',
-        useGpu: selectedComputeDeviceRef.current === 'gpu' || isMacOS,
+        useGpu: selectedComputeDeviceRef.current === 'gpu' || IS_MACOS,
       });
       setTranscription(text);
 
@@ -333,7 +334,7 @@ export default function AudioRecorder() {
                   </span>
                 </div>
               </div>
-              {!navigator.userAgent.includes('Mac') && (
+              {!IS_MACOS && (
                 <div className="setting-row">
                   <label>Inference Device</label>
                   <div className="input-group">

@@ -68,11 +68,17 @@ async fn get_compute_devices() -> Result<Vec<ComputeDevice>, String> {
     }];
 
     // Check for NVIDIA GPU using nvidia-smi
-    let output = std::process::Command::new("nvidia-smi")
+    // Check for NVIDIA GPU using nvidia-smi with a timeout
+    // Using tokio::process::Command to be async and allow timeout
+    let child = tokio::process::Command::new("nvidia-smi")
         .args(["--query-gpu=name", "--format=csv,noheader"])
+        // Ensure no window is created on Windows if necessary, though tauri sidecars are preferred usually.
+        // For simple command execution, this is fine.
         .output();
 
-    if let Ok(output) = output {
+    let output = tokio::time::timeout(std::time::Duration::from_secs(2), child).await;
+
+    if let Ok(Ok(output)) = output {
         if output.status.success() {
             let name = String::from_utf8_lossy(&output.stdout).trim().to_string();
             if !name.is_empty() {
