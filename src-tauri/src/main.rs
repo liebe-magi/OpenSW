@@ -53,20 +53,55 @@ async fn load_model(state: tauri::State<'_, AudioState>, path: String) -> Result
     Ok(path)
 }
 
+#[derive(serde::Serialize)]
+struct ComputeDevice {
+    name: String,
+    device_type: String, // "cpu" or "gpu"
+}
+
+#[tauri::command]
+#[allow(clippy::collapsible_if)]
+async fn get_compute_devices() -> Result<Vec<ComputeDevice>, String> {
+    let mut devices = vec![ComputeDevice {
+        name: "CPU".to_string(),
+        device_type: "cpu".to_string(),
+    }];
+
+    // Check for NVIDIA GPU using nvidia-smi
+    let output = std::process::Command::new("nvidia-smi")
+        .args(["--query-gpu=name", "--format=csv,noheader"])
+        .output();
+
+    if let Ok(output) = output {
+        if output.status.success() {
+            let name = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if !name.is_empty() {
+                devices.push(ComputeDevice {
+                    name,
+                    device_type: "gpu".to_string(),
+                });
+            }
+        }
+    }
+
+    Ok(devices)
+}
+
 #[tauri::command]
 async fn transcribe_audio(
     state: tauri::State<'_, AudioState>,
     language: Option<String>,
+    use_gpu: bool,
 ) -> Result<String, String> {
     let model_path_opt = state.model_path.lock().map_err(|e| e.to_string())?.clone();
     let model_path = model_path_opt.ok_or("No model selected")?;
 
     // Load model
-    let ctx = whisper_rs::WhisperContext::new_with_params(
-        &model_path,
-        whisper_rs::WhisperContextParameters::default(),
-    )
-    .map_err(|e| e.to_string())?;
+    let mut params = whisper_rs::WhisperContextParameters::default();
+    params.use_gpu(use_gpu);
+
+    let ctx = whisper_rs::WhisperContext::new_with_params(&model_path, params)
+        .map_err(|e| e.to_string())?;
     let mut state_w = ctx.create_state().map_err(|e| e.to_string())?;
 
     // Read audio
@@ -249,7 +284,8 @@ fn main() {
             copy_to_clipboard,
             request_toggle_recording,
             set_window_mode,
-            hide_window
+            hide_window,
+            get_compute_devices
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

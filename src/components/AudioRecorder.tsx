@@ -42,6 +42,33 @@ export default function AudioRecorder() {
   const ollamaPromptRef = useRef(ollamaPrompt);
   const ollamaUrlRef = useRef(ollamaUrl);
 
+  const [computeDevices, setComputeDevices] = useState<{ name: string; device_type: string }[]>([]);
+  const [selectedComputeDevice, setSelectedComputeDevice] = useState<string>(
+    () => localStorage.getItem('selectedComputeDevice') || 'cpu'
+  );
+  const selectedComputeDeviceRef = useRef(selectedComputeDevice);
+
+  useEffect(() => {
+    selectedComputeDeviceRef.current = selectedComputeDevice;
+    localStorage.setItem('selectedComputeDevice', selectedComputeDevice);
+  }, [selectedComputeDevice]);
+
+  useEffect(() => {
+    // Fetch compute devices
+    invoke<{ name: string; device_type: string }[]>('get_compute_devices')
+      .then((devices) => {
+        setComputeDevices(devices);
+        // If saved device is not available, fallback to cpu
+        if (!devices.find((d) => d.device_type === selectedComputeDevice)) {
+          setSelectedComputeDevice('cpu');
+        }
+      })
+      .catch(console.error);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount
+
+  const [activeTab, setActiveTab] = useState<'home' | 'settings'>('home');
+
   useEffect(() => {
     pipelineStageRef.current = pipelineStage;
   }, [pipelineStage]);
@@ -122,7 +149,10 @@ export default function AudioRecorder() {
       setAudioLevel(0);
       setStatus('Transcribing...');
 
-      const text = await invoke<string>('transcribe_audio', { language: 'ja' });
+      const text = await invoke<string>('transcribe_audio', {
+        language: 'ja',
+        useGpu: selectedComputeDeviceRef.current === 'gpu',
+      });
       setTranscription(text);
 
       let finalText = text;
@@ -208,80 +238,139 @@ export default function AudioRecorder() {
 
   return (
     <div className="settings-container">
-      <header className="settings-header">
-        <h1>OpenSW</h1>
-        <span className="shortcut-hint">Ctrl+Alt+Space to record</span>
+      <header className="tabs-header">
+        <button
+          className={`tab-btn ${activeTab === 'home' ? 'active' : ''}`}
+          onClick={() => setActiveTab('home')}
+        >
+          Home
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
+          onClick={() => setActiveTab('settings')}
+        >
+          Settings
+        </button>
       </header>
 
-      <section className="settings-section">
-        <h2>Audio Input</h2>
-        <div className="setting-row">
-          <label>Device</label>
-          <div className="input-group">
-            <div className="select-wrapper">
-              <select value={selectedDevice} onChange={(e) => setSelectedDevice(e.target.value)}>
-                <option value="">System Default</option>
-                {devices.map((device) => (
-                  <option key={device} value={device}>
-                    {device}
-                  </option>
-                ))}
-              </select>
-              <span className="select-arrow">▼</span>
+      <div className="tab-content">
+        {activeTab === 'home' && (
+          <div className="home-panel">
+            <div className="hero-section">
+              <h1>OpenSW</h1>
+              <p className="status-message">{status}</p>
+              <div className="shortcut-display">
+                <span className="key">Ctrl</span>
+                <span className="plus">+</span>
+                <span className="key">Alt</span>
+                <span className="plus">+</span>
+                <span className="key">Space</span>
+              </div>
+              <p className="hint-text">to start recording</p>
             </div>
-            <button
-              onClick={fetchDevices}
-              disabled={loadingDevices}
-              className="icon-btn"
-              title="Refresh devices"
-            >
-              ↻
-            </button>
-          </div>
-        </div>
-      </section>
 
-      <section className="settings-section">
-        <h2>Whisper Model</h2>
-        <div className="setting-row">
-          <label>Model File</label>
-          <div className="file-selector">
-            <button onClick={selectModel} className="select-btn">
-              {modelPath ? 'Change' : 'Select'}
-            </button>
-            <span className="file-name">{getModelFileName(modelPath) || 'No model selected'}</span>
+            <section className="settings-section home-settings">
+              <div className="setting-row">
+                <label>Language</label>
+                <div className="input-group">
+                  <div className="select-wrapper">
+                    <select value={language} onChange={(e) => setLanguage(e.target.value)}>
+                      <option value="ja">Japanese</option>
+                      <option value="en">English</option>
+                    </select>
+                    <span className="select-arrow">▼</span>
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
-        </div>
-        <div className="setting-row">
-          <label>Language</label>
-          <div className="input-group">
-            <div className="select-wrapper">
-              <select value={language} onChange={(e) => setLanguage(e.target.value)}>
-                <option value="ja">Japanese</option>
-                <option value="en">English</option>
-              </select>
-              <span className="select-arrow">▼</span>
-            </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <div className="settings-panel">
+            <section className="settings-section">
+              <h2>Audio Input</h2>
+              <div className="setting-row">
+                <label>Device</label>
+                <div className="input-group">
+                  <div className="select-wrapper">
+                    <select
+                      value={selectedDevice}
+                      onChange={(e) => setSelectedDevice(e.target.value)}
+                    >
+                      <option value="">System Default</option>
+                      {devices.map((device) => (
+                        <option key={device} value={device}>
+                          {device}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="select-arrow">▼</span>
+                  </div>
+                  <button
+                    onClick={fetchDevices}
+                    disabled={loadingDevices}
+                    className="icon-btn"
+                    title="Refresh devices"
+                  >
+                    ↻
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <section className="settings-section">
+              <h2>Whisper Model</h2>
+              <div className="setting-row">
+                <label>Model File</label>
+                <div className="file-selector">
+                  <button onClick={selectModel} className="select-btn">
+                    {modelPath ? 'Change' : 'Select'}
+                  </button>
+                  <span className="file-name">
+                    {getModelFileName(modelPath) || 'No model selected'}
+                  </span>
+                </div>
+              </div>
+              <div className="setting-row">
+                <label>Inference Device</label>
+                <div className="input-group">
+                  <div className="select-wrapper">
+                    <select
+                      value={selectedComputeDevice}
+                      onChange={(e) => setSelectedComputeDevice(e.target.value)}
+                    >
+                      {computeDevices.map((device) => (
+                        <option key={device.device_type} value={device.device_type}>
+                          {device.name}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="select-arrow">▼</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="settings-section">
+              <h2>Text Refinement (Ollama)</h2>
+              <OllamaSettings
+                selectedModel={ollamaModel}
+                onModelChange={setOllamaModel}
+                prompt={ollamaPrompt}
+                onPromptChange={setOllamaPrompt}
+                baseUrl={ollamaUrl}
+                onBaseUrlChange={setOllamaUrl}
+              />
+            </section>
+
+            <section className="settings-section">
+              <h2>App Updates</h2>
+              <UpdateChecker />
+            </section>
           </div>
-        </div>
-      </section>
-
-      <section className="settings-section">
-        <h2>Text Refinement (Ollama)</h2>
-        <OllamaSettings
-          selectedModel={ollamaModel}
-          onModelChange={setOllamaModel}
-          prompt={ollamaPrompt}
-          onPromptChange={setOllamaPrompt}
-          baseUrl={ollamaUrl}
-          onBaseUrlChange={setOllamaUrl}
-        />
-      </section>
-
-      <section className="settings-section">
-        <h2>App Updates</h2>
-        <UpdateChecker />
-      </section>
+        )}
+      </div>
 
       <footer className="settings-footer">
         <div className="status-bar">
@@ -297,36 +386,96 @@ export default function AudioRecorder() {
           display: flex;
           flex-direction: column;
           height: 100%;
-          padding: 20px 24px;
-          box-sizing: border-box;
           background: linear-gradient(180deg, rgba(15, 15, 18, 1) 0%, rgba(20, 20, 25, 1) 100%);
           overflow: hidden;
         }
-        .settings-header {
+        .tabs-header {
           display: flex;
-          justify-content: space-between;
-          align-items: baseline;
-          margin-bottom: 20px;
-          padding-bottom: 14px;
+          background: rgba(0, 0, 0, 0.2);
           border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
-        .settings-header h1 {
-          font-size: 1.4em;
-          font-weight: 700;
+        .tab-btn {
+          flex: 1;
+          background: transparent;
+          border: none;
+          color: rgba(255, 255, 255, 0.5);
+          padding: 14px;
+          cursor: pointer;
+          font-weight: 600;
+          transition: all 0.2s;
+          border-bottom: 2px solid transparent;
+        }
+        .tab-btn:hover {
+          color: rgba(255, 255, 255, 0.8);
+          background: rgba(255, 255, 255, 0.02);
+        }
+        .tab-btn.active {
+          color: #fff;
+          border-bottom-color: #646cff;
+          background: rgba(100, 108, 255, 0.05);
+        }
+        .tab-content {
+          flex: 1;
+          overflow-y: auto;
+          padding: 20px 24px;
+        }
+        .home-panel {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100%;
+          gap: 40px;
+        }
+        .hero-section {
+          text-align: center;
+        }
+        .hero-section h1 {
+          font-size: 2.5em;
+          font-weight: 800;
           background: linear-gradient(135deg, #646cff 0%, #9f5afd 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
+          margin: 0 0 10px 0;
+          letter-spacing: -1px;
+        }
+        .status-message {
+          font-size: 1.1em;
+          color: rgba(255, 255, 255, 0.7);
+          margin: 0 0 30px 0;
+        }
+        .shortcut-display {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          margin-bottom: 10px;
+        }
+        .key {
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 6px;
+          padding: 6px 12px;
+          font-family: monospace;
+          font-weight: bold;
+          font-size: 1.1em;
+          color: #fff;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .plus {
+          color: rgba(255, 255, 255, 0.4);
+        }
+        .hint-text {
+          font-size: 0.9em;
+          color: rgba(255, 255, 255, 0.4);
           margin: 0;
         }
-        .shortcut-hint {
-          font-size: 0.8em;
-          color: rgba(255, 255, 255, 0.4);
-          background: rgba(255, 255, 255, 0.05);
-          padding: 4px 10px;
-          border-radius: 4px;
+        .home-settings {
+          width: 100%;
+          max-width: 320px;
         }
         .settings-section {
-          margin-bottom: 16px;
+          margin-bottom: 24px;
         }
         .settings-section h2 {
           font-size: 0.75em;
@@ -339,10 +488,10 @@ export default function AudioRecorder() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 10px 14px;
+          padding: 12px 14px;
           background: rgba(255, 255, 255, 0.03);
           border-radius: 8px;
-          margin-bottom: 6px;
+          margin-bottom: 8px;
         }
         .setting-row label {
           font-size: 0.9em;
@@ -367,12 +516,12 @@ export default function AudioRecorder() {
           background: rgba(255, 255, 255, 0.08);
           border: 1px solid rgba(255, 255, 255, 0.1);
           color: #fff;
-          padding: 6px 32px 6px 12px;
+          padding: 8px 32px 8px 12px;
           border-radius: 6px;
           cursor: pointer;
           appearance: none;
           -webkit-appearance: none;
-          -moz-appearance: none;
+          font-size: 0.95em;
         }
         .select-wrapper select:focus {
           outline: none;
@@ -380,7 +529,7 @@ export default function AudioRecorder() {
         }
         .select-arrow {
           position: absolute;
-          right: 10px;
+          right: 12px;
           top: 50%;
           transform: translateY(-50%);
           font-size: 0.6em;
@@ -391,9 +540,9 @@ export default function AudioRecorder() {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 32px;
-          height: 32px;
-          min-width: 32px;
+          width: 36px;
+          height: 36px;
+          min-width: 36px;
           background: rgba(100, 108, 255, 0.15);
           border: 1px solid rgba(100, 108, 255, 0.3);
           border-radius: 6px;
@@ -423,10 +572,10 @@ export default function AudioRecorder() {
           background: linear-gradient(135deg, #646cff 0%, #535bf2 100%);
           border: none;
           color: white;
-          padding: 6px 14px;
+          padding: 8px 16px;
           border-radius: 6px;
           font-weight: 600;
-          font-size: 0.85em;
+          font-size: 0.9em;
           cursor: pointer;
           transition: all 0.2s;
         }
@@ -443,9 +592,9 @@ export default function AudioRecorder() {
           white-space: nowrap;
         }
         .settings-footer {
-          margin-top: auto;
-          padding-top: 14px;
+          padding: 12px 24px;
           border-top: 1px solid rgba(255, 255, 255, 0.08);
+          background: rgba(0, 0, 0, 0.2);
         }
         .status-bar {
           display: flex;
