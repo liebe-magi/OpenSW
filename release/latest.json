@@ -6,6 +6,10 @@
     "windows-x86_64": {
       "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSa2JJM2VHUUh0cVlZY0N0MkRna1h2S0p5UTVVS2tqWTFQajBPcDA1RGpkQ01wREsvYXd1eFAwUXFWaXNPRU9LNG0zZGZ5UFRZZTVHckJhdHhuTlZ2bGxlUVBRVkVhYXdBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzY3MzU3NTUxCWZpbGU6T3BlblNXXzAuMS4xX3g2NC1zZXR1cC5leGUKU0piNUtzOENlMDNhT1NiSTdNcXBSaFluQnd4WEVrbWg4QXVmbUxhTlMrcXVaTzkrb0tHTS9neUtaalBqVkxDWDRuNmJhYmJCajFkSzRBTnBnVnJ6QXc9PQo=",
       "url": "https://github.com/liebe-magi/OpenSW/releases/download/v0.1.1/OpenSW_0.1.1_x64-setup.exe"
+    },
+    "darwin-aarch64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSa2JJM2VHUUh0cVQrZW5YWkkxQzBVUEgrdjBpc1c0VGFGeXlmdjMzajl5ODNCVkNyY2MrYXlQRVN2UVg0Rm82RU1mdjlKRlI1L003bnNyU2FHcTVpQWpWSEpmUml4YXdVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzY3MzU5MDk5CWZpbGU6T3BlblNXLmFwcC50YXIuZ3oKbGxFM2hkbmlEUjVkZG9ZZG9WVnY2ZGZPdWxYREVHdWlGdUM1eU5hUDB3d1YrL0xUQjRlQTBteVZ0d0ZIaTFNQ2lzRkFHalVjZGZmTjFIS2t3M0E4QVE9PQo=",
+      "url": "https://github.com/liebe-magi/OpenSW/releases/download/v0.1.1/OpenSW.app.tar.gz"
     }
   }
 }
