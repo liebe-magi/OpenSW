@@ -1,4 +1,5 @@
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+use rodio::OutputStreamBuilder;
 use std::fs::File;
 use std::io::BufReader;
 use std::sync::{Arc, Mutex, mpsc};
@@ -35,11 +36,21 @@ pub fn get_input_devices() -> Result<Vec<String>, String> {
     let devices = host.input_devices().map_err(|e| e.to_string())?;
     let mut device_names = Vec::new();
     for device in devices {
-        if let Ok(name) = device.name() {
-            device_names.push(name);
+        if let Ok(desc) = device.description() {
+            device_names.push(format_device_name(&desc));
         }
     }
     Ok(device_names)
+}
+
+/// Format device name with extended info if available
+fn format_device_name(desc: &cpal::device_description::DeviceDescription) -> String {
+    // extended() contains the full device name like "マイク (NVIDIA Broadcast)"
+    if let Some(full_name) = desc.extended().first() {
+        full_name.clone()
+    } else {
+        desc.name().to_string()
+    }
 }
 
 #[tauri::command]
@@ -68,7 +79,11 @@ pub fn start_recording(
     let device = if let Some(name) = device_name {
         host.input_devices()
             .map_err(|e| e.to_string())?
-            .find(|x| x.name().map(|n| n == name).unwrap_or(false))
+            .find(|x| {
+                x.description()
+                    .map(|d| format_device_name(&d) == name)
+                    .unwrap_or(false)
+            })
             .ok_or(format!("Device '{}' not found", name))?
     } else {
         host.default_input_device()
@@ -76,7 +91,8 @@ pub fn start_recording(
     };
 
     let selected_device_name = device
-        .name()
+        .description()
+        .map(|d| format_device_name(&d))
         .unwrap_or_else(|_| "Unknown Device".to_string());
     let config = device.default_input_config().map_err(|e| e.to_string())?;
 
@@ -88,7 +104,7 @@ pub fn start_recording(
 
     // Save format now
     *state.format.lock().map_err(|e| e.to_string())? =
-        Some((stream_config.sample_rate.0, stream_config.channels));
+        Some((stream_config.sample_rate, stream_config.channels));
 
     std::thread::spawn(move || {
         let err_fn = |err| eprintln!("an error occurred on stream: {}", err);
@@ -213,10 +229,10 @@ pub fn play_recording() -> Result<(), String> {
     }
 
     std::thread::spawn(move || {
-        let (_stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
+        let stream = OutputStreamBuilder::open_default_stream().unwrap();
         let file = File::open(path).unwrap();
         let source = rodio::Decoder::new(BufReader::new(file)).unwrap();
-        let sink = rodio::Sink::try_new(&stream_handle).unwrap();
+        let sink = rodio::Sink::connect_new(stream.mixer());
 
         sink.append(source);
         sink.sleep_until_end();

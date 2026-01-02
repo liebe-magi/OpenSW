@@ -2,17 +2,18 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
-    ":timezone(Asia/Tokyo)",
-    ":prHourlyLimitNone",
-    ":prConcurrentLimit10",
-    "group:recommended"
+    ":semanticCommits",
+    "group:allNonMajor",
+    "helpers:pinGitHubActionDigests"
   ],
+  "timezone": "Asia/Tokyo",
+  "rebaseWhen": "behind-base-branch",
   "labels": ["dependencies"],
-  "automerge": false,
-  "platformAutomerge": true,
+  "prHourlyLimit": 2,
+  "prConcurrentLimit": 5,
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["before 6am on monday"]
+    "schedule": ["before 3am on sunday"]
   },
   "vulnerabilityAlerts": {
     "labels": ["security"],
@@ -20,14 +21,25 @@
   },
   "packageRules": [
     {
-      "description": "Auto-merge patch updates for dev dependencies",
-      "matchDepTypes": ["devDependencies"],
+      "description": "Auto-merge GitHub Actions patch/minor/digest updates",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["patch", "minor", "digest"],
+      "automerge": true,
+      "automergeType": "pr",
+      "labels": ["dependencies", "github-actions"]
+    },
+    {
+      "description": "Auto-merge Cargo patch updates",
+      "matchManagers": ["cargo"],
       "matchUpdateTypes": ["patch"],
-      "automerge": true
+      "automerge": true,
+      "automergeType": "pr",
+      "labels": ["dependencies", "cargo", "automerge-safe"]
     },
     {
       "description": "Auto-merge minor updates for linting/formatting tools",
-      "matchPackageNames": ["eslint", "prettier", "@typescript-eslint/**"],
+      "matchPackageNames": ["eslint", "prettier"],
+      "matchPackagePatterns": ["^@typescript-eslint/"],
       "matchUpdateTypes": ["minor", "patch"],
       "automerge": true
     },
@@ -43,7 +55,7 @@
     },
     {
       "description": "Group TypeScript and ESLint packages together",
-      "matchPackagePatterns": ["typescript", "eslint", "@typescript-eslint/**"],
+      "matchPackagePatterns": ["typescript", "eslint", "^@typescript-eslint/"],
       "groupName": "TypeScript and ESLint"
     },
     {
@@ -53,35 +65,32 @@
       "groupName": "Rust audio crates"
     },
     {
-      "description": "Group Rust Tauri plugins together",
+      "description": "Require review for Cargo minor updates",
       "matchManagers": ["cargo"],
-      "matchPackagePatterns": ["^tauri"],
-      "groupName": "Tauri Rust packages"
+      "matchUpdateTypes": ["minor"],
+      "automerge": false,
+      "labels": ["dependencies", "cargo", "review-required"]
+    },
+    {
+      "description": "Prioritize Cargo major updates",
+      "matchManagers": ["cargo"],
+      "matchUpdateTypes": ["major"],
+      "labels": ["dependencies", "cargo", "major"],
+      "prPriority": 1
     },
     {
       "description": "Handle whisper-rs carefully (has native dependencies)",
       "matchManagers": ["cargo"],
       "matchPackageNames": ["whisper-rs"],
       "automerge": false,
-      "labels": ["dependencies", "native"]
+      "labels": ["dependencies", "cargo", "native"]
     },
     {
-      "description": "Group serde crates together",
-      "matchManagers": ["cargo"],
-      "matchPackagePatterns": ["^serde"],
-      "groupName": "Serde crates"
-    },
-    {
-      "description": "Group GitHub Actions updates",
-      "matchManagers": ["github-actions"],
-      "groupName": "GitHub Actions",
-      "automerge": true
-    },
-    {
-      "description": "Group pre-commit hook updates",
+      "description": "Auto-merge pre-commit hook updates",
       "matchManagers": ["pre-commit"],
-      "groupName": "pre-commit hooks",
-      "automerge": true
+      "automerge": true,
+      "automergeType": "pr",
+      "labels": ["dependencies", "pre-commit"]
     }
   ],
   "schedule": ["after 10pm and before 6am every weekday", "every weekend"]

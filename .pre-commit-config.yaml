@@ -34,7 +34,7 @@ repos:
         description: Lint TypeScript/TSX files with ESLint.
         entry: bun run lint
         language: system
-        files: \.(ts|tsx)$
+        files: \.(ts|tsx|js|mjs)$
         pass_filenames: false
 
       - id: prettier
@@ -43,7 +43,7 @@ repos:
         entry: bun run format:check
         language: system
         types: [text]
-        files: \.(ts|tsx|css|json|md)$
+        files: \.(ts|tsx|js|mjs|css|json|md)$
         pass_filenames: false
 
       - id: frontend-build
@@ -52,4 +52,12 @@ repos:
         entry: bun run build
         language: system
         files: \.(ts|tsx|css|html)$
+        pass_filenames: false
+
+      - id: check-version-sync
+        name: check version sync
+        description: Verify version is synced across package.json, Cargo.toml, and tauri.conf.json.
+        entry: bash scripts/check-version-sync.sh
+        language: system
+        files: (package\.json|Cargo\.toml|tauri\.conf\.json)$
         pass_filenames: false

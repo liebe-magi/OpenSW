@@ -1,3 +1,6 @@
+# Local environment (signing keys)
+.env.local
+
 # Logs
 logs
 *.log

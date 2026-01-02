@@ -94,12 +94,8 @@ bun install
 # Run in development mode
 bun run tauri dev
 
-# Build for production
-bun run tauri build
-
-# Build for production (macOS)
-# If you encounter CMake errors with whisper-rs-sys, use:
-CMAKE_C_FLAGS="" CMAKE_CXX_FLAGS="" bun run tauri build
+# Build for production (sets platform-specific environment variables automatically)
+bun run tauri:build
 ```
 
 ### Download Whisper Model
@@ -142,6 +138,22 @@ To enable LLM-based text refinement:
    - **Model**: Select your installed model
    - **Prompt**: Customize the refinement prompt
 
+## Troubleshooting
+
+### macOS: "App is damaged and can't be opened"
+
+If you see a message saying **"OpenSW.app is damaged and can't be opened"** when trying to run the app, this is due to macOS Gatekeeper security settings (because the app is not notarized by Apple).
+
+**Solution:**
+
+Run the following command in Terminal to remove the quarantine attribute:
+
+```bash
+xattr -cr /Applications/OpenSW.app
+```
+
+_(Adjust the path if you installed the app somewhere else)_
+
 ## Configuration
 
 All settings are stored locally and persist across sessions:
@@ -162,6 +174,36 @@ All settings are stored locally and persist across sessions:
 - **Speech Recognition**: whisper-rs (whisper.cpp bindings)
 - **Audio**: cpal, hound, rodio
 - **LLM Integration**: Ollama API via reqwest
+
+## Signing & Auto-Update
+
+OpenSW includes built-in auto-update functionality. The distributed binaries are signed for secure updates.
+
+### For Contributors / Self-Builders
+
+If you build from source, signing is **optional**:
+
+- **Without signing**: Development builds work normally (`bun run tauri dev`)
+- **With signing**: Required only for distributing signed releases with auto-update
+
+### Setting Up Signing (Maintainers Only)
+
+```bash
+# Generate signing keys
+bunx tauri signer generate -w ~/.tauri/opensw.key
+
+# Copy .env.example to .env.local and configure
+cp .env.example .env.local
+# Edit .env.local with your key path and password
+
+# Build with signing
+bun run tauri:build
+
+# Generate latest.json for release
+bun run release:prepare
+```
+
+> **Note**: The public key in `tauri.conf.json` is used to verify updates. If you fork this project and want auto-updates, you'll need to generate your own key pair and update the public key.
 
 ## Development
 
@@ -191,8 +233,9 @@ bun run dev          # Start Vite dev server
 bun run tauri dev    # Run Tauri in development mode
 
 # Build
-bun run build        # Build frontend
-bun run tauri build  # Build distributable
+bun run build           # Build frontend
+bun run tauri:build     # Build distributable (with signing if configured)
+bun run release:prepare # Generate latest.json for updater
 
 # Code Quality
 bun run lint         # Run ESLint
