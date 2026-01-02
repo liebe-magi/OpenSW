@@ -175,6 +175,36 @@ All settings are stored locally and persist across sessions:
 - **Audio**: cpal, hound, rodio
 - **LLM Integration**: Ollama API via reqwest
 
+## Signing & Auto-Update
+
+OpenSW includes built-in auto-update functionality. The distributed binaries are signed for secure updates.
+
+### For Contributors / Self-Builders
+
+If you build from source, signing is **optional**:
+
+- **Without signing**: Development builds work normally (`bun run tauri dev`)
+- **With signing**: Required only for distributing signed releases with auto-update
+
+### Setting Up Signing (Maintainers Only)
+
+```bash
+# Generate signing keys
+bunx tauri signer generate -w ~/.tauri/opensw.key
+
+# Copy .env.example to .env.local and configure
+cp .env.example .env.local
+# Edit .env.local with your key path and password
+
+# Build with signing
+bun run tauri:build
+
+# Generate latest.json for release
+bun run release:prepare
+```
+
+> **Note**: The public key in `tauri.conf.json` is used to verify updates. If you fork this project and want auto-updates, you'll need to generate your own key pair and update the public key.
+
 ## Development
 
 ### Project Structure
@@ -203,8 +233,9 @@ bun run dev          # Start Vite dev server
 bun run tauri dev    # Run Tauri in development mode
 
 # Build
-bun run build        # Build frontend
-bun run tauri:build  # Build distributable (with platform-specific env vars)
+bun run build           # Build frontend
+bun run tauri:build     # Build distributable (with signing if configured)
+bun run release:prepare # Generate latest.json for updater
 
 # Code Quality
 bun run lint         # Run ESLint

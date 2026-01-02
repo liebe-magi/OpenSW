@@ -175,6 +175,36 @@ _（アプリを別の場所にインストールした場合は、パスを適�
 - **オーディオ処理**: cpal、hound、rodio
 - **LLM 連携**: reqwest 経由の Ollama API
 
+## 署名と自動更新
+
+OpenSW には自動更新機能が組み込まれています。配布されるバイナリはセキュアな更新のために署名されています。
+
+### コントリビューター / 自分用ビルドの場合
+
+ソースからビルドする場合、署名は**任意**です：
+
+- **署名なし**: 開発ビルドは通常通り動作します（`bun run tauri dev`）
+- **署名あり**: 自動更新付きの署名済みリリースを配布する場合のみ必要
+
+### 署名の設定（メンテナー向け）
+
+```bash
+# 署名キーを生成
+bunx tauri signer generate -w ~/.tauri/opensw.key
+
+# .env.example を .env.local にコピーして設定
+cp .env.example .env.local
+# .env.local にキーのパスとパスワードを設定
+
+# 署名付きビルド
+bun run tauri:build
+
+# リリース用の latest.json を生成
+bun run release:prepare
+```
+
+> **注意**: `tauri.conf.json` の公開鍵は更新の検証に使用されます。このプロジェクトをフォークして自動更新を使用する場合は、独自のキーペアを生成し、公開鍵を更新する必要があります。
+
 ## 開発
 
 ### プロジェクト構成
@@ -203,8 +233,9 @@ bun run dev          # Vite 開発サーバー起動
 bun run tauri dev    # Tauri を開発モードで実行
 
 # ビルド
-bun run build        # フロントエンドビルド
-bun run tauri:build  # 配布用ビルド（プラットフォーム固有の環境変数を自動設定）
+bun run build           # フロントエンドビルド
+bun run tauri:build     # 配布用ビルド（署名設定時は署名付き）
+bun run release:prepare # 更新用の latest.json を生成
 
 # コード品質
 bun run lint         # ESLint 実行
