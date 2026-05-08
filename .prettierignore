@@ -4,3 +4,4 @@ target
 src-tauri/target
 src-tauri/gen
 .git
+.claude/settings.local.json
