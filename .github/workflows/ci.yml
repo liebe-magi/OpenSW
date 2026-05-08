@@ -33,6 +33,13 @@ jobs:
   rust_check:
     name: Rust Build Check (macOS)
     runs-on: macos-latest
+    env:
+      # whisper.cpp / ggml otherwise auto-detects host CPU features and
+      # tries to inline ARM i8mm intrinsics on macos-latest runners that
+      # do not advertise i8mm support, producing build errors. Disable
+      # native CPU dispatch so the build uses a generic baseline.
+      GGML_NATIVE: 'OFF'
+      WHISPER_BUILD_NATIVE: 'OFF'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
