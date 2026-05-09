@@ -59,10 +59,20 @@
       "groupName": "TypeScript and ESLint"
     },
     {
-      "description": "Group Rust audio crates together",
+      "description": "Group Rust audio crates together (0.x bumps need individual review)",
       "matchManagers": ["cargo"],
-      "matchPackageNames": ["cpal", "hound", "rodio", "rubato"],
-      "groupName": "Rust audio crates"
+      "matchPackageNames": [
+        "cpal",
+        "hound",
+        "rodio",
+        "rubato",
+        "audioadapter",
+        "audioadapter-buffers",
+        "audioadapter-sample"
+      ],
+      "groupName": "Rust audio crates",
+      "automerge": false,
+      "labels": ["dependencies", "cargo", "native", "review-required"]
     },
     {
       "description": "Require review for Cargo minor updates",
@@ -79,11 +89,12 @@
       "prPriority": 1
     },
     {
-      "description": "Handle whisper-rs carefully (has native dependencies)",
+      "description": "Isolate whisper-rs (native deps; needs individual verification)",
       "matchManagers": ["cargo"],
-      "matchPackageNames": ["whisper-rs"],
+      "matchPackageNames": ["whisper-rs", "whisper-rs-sys"],
+      "groupName": "whisper-rs",
       "automerge": false,
-      "labels": ["dependencies", "cargo", "native"]
+      "labels": ["dependencies", "cargo", "native", "review-required"]
     },
     {
       "description": "Auto-merge pre-commit hook updates",
