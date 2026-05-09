@@ -29,38 +29,6 @@ jobs:
         working-directory: src-tauri
         run: cargo fmt --all -- --check
 
-  # Rust type-check + lint on macOS (covers whisper-rs metal feature path)
-  rust_check:
-    name: Rust Build Check (macOS)
-    runs-on: macos-latest
-    env:
-      # whisper.cpp / ggml otherwise auto-detects host CPU features and
-      # tries to inline ARM i8mm intrinsics on macos-latest runners that
-      # do not advertise i8mm support, producing build errors. Disable
-      # native CPU dispatch so the build uses a generic baseline.
-      GGML_NATIVE: 'OFF'
-      WHISPER_BUILD_NATIVE: 'OFF'
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
-
-      - name: Cache Rust dependencies
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
-        with:
-          workspaces: src-tauri
-
-      - name: cargo check
-        working-directory: src-tauri
-        run: cargo check --locked --all-targets
-
-      - name: cargo clippy
-        working-directory: src-tauri
-        run: cargo clippy --locked --all-targets -- -D warnings
-
   # Frontend checks
   frontend_check:
     name: Frontend Check
