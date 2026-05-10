@@ -106,8 +106,9 @@ async fn transcribe_audio(
     let mut params = whisper_rs::WhisperContextParameters::default();
     params.use_gpu(use_gpu);
 
-    let ctx = whisper_rs::WhisperContext::new_with_params(&model_path, params)
-        .map_err(|e| e.to_string())?;
+    let ctx =
+        whisper_rs::WhisperContext::new_with_params(std::path::Path::new(&model_path), params)
+            .map_err(|e| e.to_string())?;
     let mut state_w = ctx.create_state().map_err(|e| e.to_string())?;
 
     // Read audio
